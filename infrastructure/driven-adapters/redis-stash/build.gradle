@@ -1,0 +1,6 @@
+dependencies {
+    compile project(':model')
+    compile 'io.lettuce:lettuce-core:6.0.2.RELEASE'
+    compile 'org.apache.commons:commons-lang3:3.11'
+    testImplementation 'com.github.kstyrc:embedded-redis:0.6'
+}

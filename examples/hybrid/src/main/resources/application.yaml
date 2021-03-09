@@ -1,0 +1,11 @@
+
+stash:
+  memory:
+    expireTime: 10
+    maxSize: 10_000
+  redis:
+    expireTime: 60
+    host: localhost
+    port: 6379
+#    database:
+#    password:

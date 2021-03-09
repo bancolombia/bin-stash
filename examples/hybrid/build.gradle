@@ -1,0 +1,12 @@
+dependencies {
+    compile project(':hybrid-cache')
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'io.projectreactor.addons:reactor-extra'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+project.tasks.publish.enabled = false
+
+test.onlyIf { !project.hasProperty('examplesTesting') }
+jacocoTestCoverageVerification.onlyIf { !project.hasProperty('examplesCoverage') }
+jacocoTestReport.onlyIf { !project.hasProperty('examplesCoverage') }

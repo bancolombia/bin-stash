@@ -1,0 +1,31 @@
+rootProject.name = 'bin-stash'
+
+include ":model"
+project(':model').projectDir = file('./domain/model')
+
+include ":usecase"
+project(':usecase').projectDir = file('./domain/usecase')
+
+include ":mem-stash"
+project(':mem-stash').projectDir = file('./infrastructure/driven-adapters/mem-stash')
+
+include ":redis-stash"
+project(':redis-stash').projectDir = file('./infrastructure/driven-adapters/redis-stash')
+
+include ":local-cache"
+project(':local-cache').projectDir = file('./configuration/local-cache')
+
+include ":distributed-cache"
+project(':distributed-cache').projectDir = file('./configuration/distributed-cache')
+
+include ":hybrid-cache"
+project(':hybrid-cache').projectDir = file('./configuration/hybrid-cache')
+
+include ":example-local"
+project(':example-local').projectDir = file('./examples/local')
+
+include ":example-distributed"
+project(':example-distributed').projectDir = file('./examples/distributed')
+
+include ":example-hybrid"
+project(':example-hybrid').projectDir = file('./examples/hybrid')
