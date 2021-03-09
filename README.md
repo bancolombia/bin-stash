@@ -2,7 +2,7 @@
 
 Library for caching data:
 
-- In memory or with a distributed cache (redis) making a single tier cache.
+- In memory (using Caffeine) or with a distributed cache (Redis using Lettuce Reactive) making a single tier cache.
 - Or using both as a two tier stage cache.
 
 # Getting Started
@@ -153,6 +153,33 @@ public class PersonCachedHandler {
 ```
 3.	Latest releases
 4.	API references
+
+# How two tier cache works
+
+When using the cache in hybrid mode (two tier cache), requests works as described:
+
+**GET Operation**
+
+1. When a lookup misses local cache, and upstream sync is allowed, bin-stash tries to lookup in the distributed cache.
+2. If the lookup operation in the distributed cache hits a key, then return the value. Also if downtream sync 
+   is allowed, the key-value is replicated in local cache.
+   
+**SAVE operation**
+
+1. Writes are performed in local cache, and if upstream sync is allowed, bin-stash tries to write key-value in the
+   distributed cache, given this key doesn't previously exists.
+
+**EVICT operation**
+
+1. `Evict(key)` is performed in local cache, and if upstream sync is allowed, bin-stash tries to evict key-value in the
+   distributed cache.
+2. `EvictAll` operation it's performed on local and is not syncronized upstream.   
+
+**Sync Rules**
+
+DoubleTierCache uses a collection of `SyncRule` to determine if upstream/downstream sync takes place. 
+This functional interface takes keyname and `SyncType` (UPSTREAM or DOWNSTREAM) as arguments, and should return 
+a `boolean`.
 
 # Build and Test
 TODO: Describe and show how to build your code and run the tests. 
