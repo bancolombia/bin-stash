@@ -1,7 +1,6 @@
 allprojects {
     apply plugin: "java"
     apply plugin: "jacoco"
-    apply plugin: "maven"
     apply plugin: "maven-publish"
 //    apply plugin: "signing"
     apply plugin: "io.spring.dependency-management"
@@ -12,9 +11,6 @@ allprojects {
     }
 }
 subprojects {
-//    configurations {
-//        compile.exclude group: "org.apache.logging.log4j", module:"log4j-to-slf4j"
-//    }
 
     dependencies {
         implementation 'io.projectreactor:reactor-core'
@@ -79,33 +75,46 @@ subprojects {
 //        sign configurations.archives
 //    }
 
-}
-
-task jacocoMergedReport(type: JacocoReport) {
-    dependsOn = subprojects.jacocoTestReport
-    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories.setFrom files(subprojects.sourceSets.main.output)
-    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
-
-    reports {
-        xml.enabled true
-        xml.destination = file("${buildDir}/jacoco/report.xml")
-        csv.enabled false
-        html.enabled true
-        html.destination = file("${buildDir}/jacoco")
-    }
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "OSSRH"
-            url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                versionMapping {
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                from components.java
+            }
+        }
+        repositories {
+            maven {
+                name = "OSSRH"
+                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                credentials {
+                    username = System.getenv("MAVEN_USERNAME")
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
             }
         }
     }
+
+    task jacocoMergedReport(type: JacocoReport) {
+        dependsOn = subprojects.jacocoTestReport
+        additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+        sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+        classDirectories.setFrom files(subprojects.sourceSets.main.output)
+        executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+
+        reports {
+            xml.enabled true
+            xml.destination = file("${buildDir}/jacoco/report.xml")
+            csv.enabled false
+            html.enabled true
+            html.destination = file("${buildDir}/jacoco")
+        }
+    }
 }
+
+
+
+
