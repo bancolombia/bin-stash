@@ -1,12 +1,17 @@
 dependencies {
     compile project(':local-cache')
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'io.projectreactor.addons:reactor-extra'
+    compile 'org.springframework.boot:spring-boot-starter-webflux'
+    compile 'io.projectreactor.addons:reactor-extra'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
-
-project.tasks.publish.enabled = false
 
 test.onlyIf { !project.hasProperty('examplesTesting') }
 jacocoTestCoverageVerification.onlyIf { !project.hasProperty('examplesCoverage') }
 jacocoTestReport.onlyIf { !project.hasProperty('examplesCoverage') }
+
+project.afterEvaluate {
+    project.tasks.publishToMavenLocal.enabled(false)
+    project.tasks.publish.enabled(false)
+    project.tasks.publishAllPublicationsToOSSRHRepository.enabled(false)
+    project.tasks.publishMavenJavaPublicationToMavenLocal.enabled(false)
+}
