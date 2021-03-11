@@ -15,8 +15,8 @@ project(':redis-stash').projectDir = file('./infrastructure/driven-adapters/redi
 include ":local-cache"
 project(':local-cache').projectDir = file('./configuration/local-cache')
 
-include ":distributed-cache"
-project(':distributed-cache').projectDir = file('./configuration/distributed-cache')
+include ":centralized-cache"
+project(':centralized-cache').projectDir = file('./configuration/centralized-cache')
 
 include ":hybrid-cache"
 project(':hybrid-cache').projectDir = file('./configuration/hybrid-cache')
@@ -24,8 +24,8 @@ project(':hybrid-cache').projectDir = file('./configuration/hybrid-cache')
 include ":example-local"
 project(':example-local').projectDir = file('./examples/local')
 
-include ":example-distributed"
-project(':example-distributed').projectDir = file('./examples/distributed')
+include ":example-centralized"
+project(':example-centralized').projectDir = file('./examples/centralized')
 
 include ":example-hybrid"
 project(':example-hybrid').projectDir = file('./examples/hybrid')
