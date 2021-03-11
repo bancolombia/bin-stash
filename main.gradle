@@ -1,16 +1,60 @@
 allprojects {
     apply plugin: "java"
     apply plugin: "jacoco"
-    apply plugin: "maven-publish"
-//    apply plugin: "signing"
-    apply plugin: "io.spring.dependency-management"
+    apply plugin: 'org.sonarqube'
     sourceCompatibility = JavaVersion.VERSION_11
+
     repositories {
-        mavenLocal()
         mavenCentral()
+    }
+
+    sonarqube {
+        properties {
+            property "sonar.sourceEncoding", "UTF-8"
+            property "sonar.projectKey", "bancolombia_bin-stash"
+            property "sonar.organization", "grupo-bancolombia"
+            property "sonar.host.url", "https://sonarcloud.io/"
+            property "sonar.sources", "src/main"
+            property "sonar.test", "src/test"
+            property "sonar.java.binaries", "build/classes"
+            property "sonar.junit.reportPaths", "build/test-results/test"
+            property "sonar.java-coveragePlugin", "jacoco"
+            property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/generateMergedReport/generateMergedReport.xml"
+            property "sonar.exclusions", ".github/**"
+        }
     }
 }
 subprojects {
+
+    apply plugin: 'java-library'
+    apply plugin: "maven"
+    apply plugin: "maven-publish"
+    apply plugin: "io.spring.dependency-management"
+    apply plugin: 'signing'
+
+    ext {
+        pomConfig = {
+            licenses {
+                license {
+                    name "MIT License"
+                    url "https://opensource.org/licenses/mit-license.php"
+                    distribution "repo"
+                }
+            }
+            developers {
+                developer {
+                    id "gabheadz"
+                    name "Gabriel Martinez"
+                    email "gabrieljm@gmail.com"
+                }
+            }
+
+            scm {
+                url "git@github.com:bancolombia/bin-stash.git"
+            }
+        }
+        groupId = 'com.github.bancolombia'
+    }
 
     dependencies {
         implementation 'io.projectreactor:reactor-core'
@@ -57,33 +101,45 @@ subprojects {
         ]
     }
 
-//    task javadocJar(type: Jar) {
-//        classifier = 'javadoc'
-//        from javadoc
-//    }
-//
-//    task sourcesJar(type: Jar) {
-//        classifier = 'sources'
-//        from sourceSets.main.allSource
-//    }
-//
-//    artifacts {
-//        archives javadocJar, sourcesJar
-//    }
-//
-//    signing {
-//        sign configurations.archives
-//    }
+    tasks.withType(GenerateModuleMetadata) {
+        enabled = false
+    }
+
+    if (project.hasProperty('signing.keyId')) {
+        signing {
+            sign publishing.publications.mavenJava
+        }
+    }
+
+    task sourcesJar(type: Jar) {
+        classifier "sources"
+        from sourceSets.main.allJava
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
 
     publishing {
         publications {
             mavenJava(MavenPublication) {
-                versionMapping {
-                    usage('java-runtime') {
-                        fromResolutionResult()
-                    }
-                }
                 from components.java
+
+                artifact sourcesJar
+                artifact javadocJar
+
+                groupId = groupId
+                artifactId = artifactId
+                version = project.property('version')
+
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode('description', artifactDescription)
+                    root.appendNode('name', artifactId)
+                    root.appendNode('url', 'https://github.com/bancolombia/bin-stash')
+                    root.children().last() + pomConfig
+                }
             }
         }
         repositories {
@@ -98,23 +154,34 @@ subprojects {
         }
     }
 
-    task jacocoMergedReport(type: JacocoReport) {
-        dependsOn = subprojects.jacocoTestReport
-        additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-        sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-        classDirectories.setFrom files(subprojects.sourceSets.main.output)
-        executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
-
-        reports {
-            xml.enabled true
-            xml.destination = file("${buildDir}/jacoco/report.xml")
-            csv.enabled false
-            html.enabled true
-            html.destination = file("${buildDir}/jacoco")
-        }
-    }
+//    task jacocoMergedReport(type: JacocoReport) {
+//        dependsOn = subprojects.jacocoTestReport
+//        additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+//        sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+//        classDirectories.setFrom files(subprojects.sourceSets.main.output)
+//        executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+//
+//        reports {
+//            xml.enabled true
+//            xml.destination = file("${buildDir}/jacoco/report.xml")
+//            csv.enabled false
+//            html.enabled true
+//            html.destination = file("${buildDir}/jacoco")
+//        }
+//    }
 }
 
-
+task generateMergedReport(type: JacocoReport) {
+    dependsOn = subprojects.test
+    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+    executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled true
+    }
+}
 
 

@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':local-cache')
+    compile project(':bin-stash-local')
     compile 'org.springframework.boot:spring-boot-starter-webflux'
     compile 'io.projectreactor.addons:reactor-extra'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -12,6 +12,11 @@ jacocoTestReport.onlyIf { !project.hasProperty('examplesCoverage') }
 project.afterEvaluate {
     project.tasks.publishToMavenLocal.enabled(false)
     project.tasks.publish.enabled(false)
+    project.tasks.install.enabled(false)
     project.tasks.publishAllPublicationsToOSSRHRepository.enabled(false)
     project.tasks.publishMavenJavaPublicationToMavenLocal.enabled(false)
+}
+
+sonarqube {
+    skipProject = true
 }

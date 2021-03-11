@@ -12,14 +12,14 @@ project(':mem-stash').projectDir = file('./infrastructure/driven-adapters/mem-st
 include ":redis-stash"
 project(':redis-stash').projectDir = file('./infrastructure/driven-adapters/redis-stash')
 
-include ":local-cache"
-project(':local-cache').projectDir = file('./configuration/local-cache')
+include ":bin-stash-local"
+project(':bin-stash-local').projectDir = file('./configuration/local-cache')
 
-include ":centralized-cache"
-project(':centralized-cache').projectDir = file('./configuration/centralized-cache')
+include ":bin-stash-centralized"
+project(':bin-stash-centralized').projectDir = file('./configuration/centralized-cache')
 
-include ":hybrid-cache"
-project(':hybrid-cache').projectDir = file('./configuration/hybrid-cache')
+include ":bin-stash-hybrid"
+project(':bin-stash-hybrid').projectDir = file('./configuration/hybrid-cache')
 
 include ":example-local"
 project(':example-local').projectDir = file('./examples/local')

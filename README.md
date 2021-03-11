@@ -13,8 +13,8 @@ For local cache only
 
 ```
 <dependency>
-  <groupId>co.com.bancolombia.binstash</groupId>
-  <artifactId>local-cache</artifactId>
+  <groupId>co.com.bancolombia</groupId>
+  <artifactId>bin-stash-local</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```
@@ -23,8 +23,8 @@ For a centralized (redis) cache only
 
 ```
 <dependency>
-  <groupId>co.com.bancolombia.binstash</groupId>
-  <artifactId>centralized-cache</artifactId>
+  <groupId>co.com.bancolombia</groupId>
+  <artifactId>bin-stash-centralized</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```
@@ -33,8 +33,8 @@ For an hybrid (local and centralized) cache
 
 ```
 <dependency>
-  <groupId>co.com.bancolombia.binstash</groupId>
-  <artifactId>hybrid-cache</artifactId>
+  <groupId>co.com.bancolombia</groupId>
+  <artifactId>bin-stash-hybrid</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```
