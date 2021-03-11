@@ -9,11 +9,12 @@ import redis.embedded.RedisServer;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Log
-public class RedisStashTest {
+class RedisStashTest {
 
     private static final String TEST_VALUE = "Hello World";
     private static RedisServer redisServer;
@@ -21,18 +22,18 @@ public class RedisStashTest {
     private Map<String, String> demoMap;
 
     @BeforeAll
-    public static void prepare() throws IOException {
+    static void prepare() throws IOException {
         redisServer = new RedisServer(16379);
         redisServer.start();
     }
 
     @AfterAll
-    public static void clean() {
+    static void clean() {
         redisServer.stop();
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         demoMap = new HashMap<>();
         demoMap.put("name", "Peter");
         demoMap.put("lastName", "Parker");
@@ -42,23 +43,24 @@ public class RedisStashTest {
                 .host("127.0.0.1")
                 .port(16379)
                 .build();
+
+        this.stash.evictAll();
     }
 
     @AfterEach
-    public void after() {
-        this.stash.evictAll();
-        this.stash = null;
+    void after() {
+        this.stash.evictAll().subscribe();
     }
 
 //    @Test
     @DisplayName("Should create instance with defaults")
-    public void testCreateWithDefaults() {
+    void testCreateWithDefaults() {
         assertNotNull(new RedisStash.Builder().build());
     }
 
     @Test
     @DisplayName("Should create instance with all props setted")
-    public void testCreateManual() {
+    void testCreateManual() {
         assertNotNull(new RedisStash.Builder()
                 .db(0)
                 .expireAfter(1)
@@ -72,7 +74,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should save element")
-    public void testPut() {
+    void testPut() {
         StepVerifier.create(stash.save("key1", TEST_VALUE))
                 .expectSubscription()
                 .expectNext(TEST_VALUE)
@@ -82,7 +84,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should handle save with null key")
-    public void testPutNullKey() {
+    void testPutNullKey() {
         StepVerifier.create(stash.save(null, TEST_VALUE))
                 .expectSubscription()
                 .expectErrorMessage("Caching key cannot be null")
@@ -95,7 +97,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should save then get element")
-    public void testPutGet() {
+    void testPutGet() {
         Mono<String> op = stash.save("key2", TEST_VALUE)
                 .then(stash.get("key2"));
 
@@ -113,7 +115,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should verify key exists")
-    public void testExists() {
+    void testExists() {
         Mono<Boolean> op = stash.save("key2", TEST_VALUE)
                 .then(stash.exists("key2"));
 
@@ -129,9 +131,24 @@ public class RedisStashTest {
                 .verify();
     }
 
+    @Test
+    @DisplayName("Should get keyset")
+    void testKeySet() {
+
+        Mono<Set<String>> op = stash.save("key2", TEST_VALUE)
+                .then(stash.keySet());
+
+        StepVerifier.create(op)
+                .expectSubscription()
+                .expectNext(Set.of("key2"))
+                .expectComplete()
+                .verify();
+
+    }
+
 //    @Test
 //    @DisplayName("Should save, expire, then try to get element")
-//    public void testPutExpireGet() {
+//    void testPutExpireGet() {
 //        Mono<String> op = stash.save("key3", TEST_VALUE)
 //                .delayElement(Duration.ofSeconds(3))
 //                .then(stash.get("key3"));
@@ -144,7 +161,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should save, evict, then try to get element")
-    public void testPutEvictGet() {
+    void testPutEvictGet() {
         Mono<String> op = stash.save("key4", TEST_VALUE)
                 .then(stash.evict("key4"))
                 .then(stash.get("key4"));
@@ -162,7 +179,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should save keys, then evict all")
-    public void testPutEvictAll() {
+    void testPutEvictAll() {
         Mono<String> op = stash.save("key5", TEST_VALUE)
                 .then(stash.save("key5b", TEST_VALUE))
                 .then(stash.evictAll())
@@ -176,7 +193,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should save map")
-    public void testPutMap() {
+    void testPutMap() {
 
         StepVerifier.create(stash.hSave("keyMap", demoMap))
                 .expectSubscription()
@@ -193,7 +210,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should save field in map")
-    public void testPutFieldMap() {
+    void testPutFieldMap() {
         StepVerifier.create(stash.hSave("keyMap", "location", "NJ"))
                 .expectSubscription()
                 .expectNext("NJ")
@@ -209,7 +226,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should get field from map")
-    public void testGetFieldMap() {
+    void testGetFieldMap() {
         Mono<String> op = stash.hSave("keyMap", demoMap)
                 .then(stash.hGet("keyMap", "name"));
 
@@ -227,7 +244,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should get map")
-    public void testGetMap() {
+    void testGetMap() {
         Mono<Map<String, String>> op = stash.hSave("keyMap", demoMap)
                 .then(stash.hGetAll("keyMap"));
 
@@ -245,7 +262,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should delete map")
-    public void testDeleteMap() {
+    void testDeleteMap() {
         Mono<String> op = stash.hSave("keyMap", demoMap)
                 .then(stash.hDelete("keyMap"))
                 .then(stash.hGet("keyMap", "name"));
@@ -263,7 +280,7 @@ public class RedisStashTest {
 
     @Test
     @DisplayName("Should delete field from map")
-    public void testDeleteFieldMap() {
+    void testDeleteFieldMap() {
         Mono<Boolean> op = stash.hSave("keyMap", demoMap)
                 .then(stash.hDelete("keyMap", "name"));
 

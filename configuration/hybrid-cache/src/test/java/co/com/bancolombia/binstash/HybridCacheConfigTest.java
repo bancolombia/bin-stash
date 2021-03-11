@@ -10,24 +10,24 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class HybridCacheConfigTest {
+class HybridCacheConfigTest {
 
     private static RedisServer redisServer;
     private HybridCacheConfig config;
 
     @BeforeAll
-    public static void prepare() throws IOException {
+    static void prepare() throws IOException {
         redisServer = new RedisServer(16380);
         redisServer.start();
     }
 
     @AfterAll
-    public static void clean() {
+    static void clean() {
         redisServer.stop();
     }
 
     @BeforeEach
-    public void before() {
+    void before() {
         config = new HybridCacheConfig();
         ReflectionTestUtils.setField(config, "localExpireTime", 1);
         ReflectionTestUtils.setField(config, "localMaxSize", 10);
@@ -37,44 +37,44 @@ public class HybridCacheConfigTest {
 
     @Test
     @DisplayName("Create object memory stash")
-    public void createMemStash() {
+    void createMemStash() {
         assertNotNull(config.memStash());
     }
 
     @Test
     @DisplayName("Create object redis stash")
-    public void createRedisStash() {
+    void createRedisStash() {
         assertNotNull(config.redisStash());
     }
 
     @Test
     @DisplayName("Create map memory cache")
-    public void createMapLocalStash() {
+    void createMapLocalStash() {
         assertNotNull(config.localMapCache(config.memStash()));
     }
 
     @Test
     @DisplayName("Create map redis cache")
-    public void createMapDistrStash() {
+    void createMapDistrStash() {
         assertNotNull(config.distributedMapCache(config.redisStash()));
     }
 
     @Test
     @DisplayName("Create object memory cache")
-    public void createObjectLocalStash() {
+    void createObjectLocalStash() {
         assertNotNull(config.localObjectCache(config.memStash(), new ObjectMapper()));
     }
 
     @Test
     @DisplayName("Create object redis cache")
-    public void createObjectDistrStash() {
+    void createObjectDistrStash() {
         assertNotNull(config.distributedObjectCache(config.redisStash(),
                 new ObjectMapper()));
     }
 
     @Test
     @DisplayName("Create factory")
-    public void createFactory() {
+    void createFactory() {
         assertNotNull(config.hybridCacheFactory(
                 config.localObjectCache(config.memStash(), new ObjectMapper()),
                 config.distributedObjectCache(config.redisStash(), new ObjectMapper()),

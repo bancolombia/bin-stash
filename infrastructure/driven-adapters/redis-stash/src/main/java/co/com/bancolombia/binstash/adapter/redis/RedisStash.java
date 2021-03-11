@@ -9,7 +9,9 @@ import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Mono;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class RedisStash implements Stash {
 
@@ -41,6 +43,12 @@ public class RedisStash implements Stash {
         } else {
             return redisReactiveCommands.get(key);
         }
+    }
+
+    @Override
+    public Mono<Set<String>> keySet() {
+        return redisReactiveCommands.keys("*").collectList()
+                .map(HashSet::new);
     }
 
     @Override
@@ -160,7 +168,7 @@ public class RedisStash implements Stash {
         }
 
         private String buildUrl() {
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append("redis://");
             if (StringUtils.isNotBlank(this.password)) {
                 buffer.append(this.password);

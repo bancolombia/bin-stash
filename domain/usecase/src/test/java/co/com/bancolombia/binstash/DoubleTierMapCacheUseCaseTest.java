@@ -14,11 +14,12 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DoubleTierMapCacheUseCaseTest {
+class DoubleTierMapCacheUseCaseTest {
 
     private DoubleTierMapCacheUseCase cache;
 
@@ -32,7 +33,7 @@ public class DoubleTierMapCacheUseCaseTest {
     private Map<String, String> demoMap;
 
     @BeforeEach
-    public void before() {
+    void before() {
         cache = new DoubleTierMapCacheUseCase(localCache, distributedCache, ruleEvaluatorUseCase);
         demoMap = new HashMap<>();
         demoMap.put("name", "Peter");
@@ -41,14 +42,14 @@ public class DoubleTierMapCacheUseCaseTest {
 
     @Test
     @DisplayName("Create cache")
-    public void testCreate() {
-        assert cache != null;
+    void testCreate() {
+        assertNotNull(cache);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("save local map cache, sync upstream")
-    public void testSave() {
+    void testSave() {
 
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -63,14 +64,14 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(localCache).saveMap(eq("pparker"), eq(demoMap));
-        verify(distributedCache).saveMap(eq("pparker"), eq(demoMap));
+        verify(localCache).saveMap("pparker", demoMap);
+        verify(distributedCache).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("save local map cache, try sync upstream, key exists")
-    public void testSave2() {
+    void testSave2() {
 
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -82,14 +83,14 @@ public class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
         Thread.sleep(300);
-        verify(localCache).saveMap(eq("pparker"), eq(demoMap));
-        verify(distributedCache, times(0)).saveMap(eq("pparker"), eq(demoMap));
+        verify(localCache).saveMap("pparker", demoMap);
+        verify(distributedCache, times(0)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("save local map cache, dont sync upstream")
-    public void testSave3() {
+    void testSave3() {
 
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(false);
@@ -101,15 +102,15 @@ public class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         Thread.sleep(300);
-        verify(localCache).saveMap(eq("pparker"), eq(demoMap));
-        verify(distributedCache, times(0)).saveMap(eq("pparker"), eq(demoMap));
+        verify(localCache).saveMap("pparker", demoMap);
+        verify(distributedCache, times(0)).saveMap("pparker", demoMap);
     }
 
 
     @SneakyThrows
     @Test
     @DisplayName("save map prop in local cache, sync upstream")
-    public void testSaveProp() {
+    void testSaveProp() {
         when(localCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(distributedCache.existsMap(anyString(), anyString())).thenReturn(Mono.just(false));
@@ -123,15 +124,15 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(localCache).saveMap(eq("pparker"), eq("city"), eq("NY"));
-        verify(distributedCache).saveMap(eq("pparker"), eq("city"), eq("NY"));
+        verify(localCache).saveMap("pparker", "city", "NY");
+        verify(distributedCache).saveMap("pparker", "city", "NY");
     }
 
 
     @SneakyThrows
     @Test
     @DisplayName("Get map from local cache only")
-    public void testGet() {
+    void testGet() {
 
         when(localCache.getMap(anyString())).thenReturn(Mono.just(demoMap));
 
@@ -143,13 +144,29 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(distributedCache, times(0)).getMap(eq("pparker"));
+        verify(distributedCache, times(0)).getMap("pparker");
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Get keyset")
+    void testKeyset() {
+
+        when(localCache.keySet()).thenReturn(Mono.just(demoMap.keySet()));
+
+        StepVerifier.create(cache.keySet())
+                .expectSubscription()
+                .expectNext(demoMap.keySet())
+                .expectComplete()
+                .verify();
+
+        verify(distributedCache, times(0)).keySet();
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Get map field from local cache only")
-    public void testGetField() {
+    void testGetField() {
 
         when(localCache.getMap(anyString(), anyString())).thenReturn(Mono.just("NY"));
 
@@ -161,13 +178,13 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(distributedCache, times(0)).getMap(eq("pparker"));
+        verify(distributedCache, times(0)).getMap("pparker");
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Miss map field from local cache, sync downstream")
-    public void testGetField2() {
+    void testGetField2() {
 
         when(localCache.getMap(anyString(), anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -183,14 +200,14 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(distributedCache).getMap(eq("pparker"), eq("city"));
-        verify(localCache).saveMap(eq("pparker"), eq("city"), eq("NY"));
+        verify(distributedCache).getMap("pparker", "city");
+        verify(localCache).saveMap("pparker", "city", "NY");
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Miss map field from local cache and miss from distributed")
-    public void testGetField3() {
+    void testGetField3() {
 
         when(localCache.getMap(anyString(), anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -203,14 +220,14 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(distributedCache).getMap(eq("pparker"), eq("city"));
-        verify(localCache, times(0)).saveMap(eq("pparker"), eq("city"), eq("NY"));
+        verify(distributedCache).getMap("pparker", "city");
+        verify(localCache, times(0)).saveMap("pparker", "city", "NY");
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Miss map from local cache, fetch from distributed, sync local")
-    public void testGet2() {
+    void testGet2() {
 
         when(localCache.getMap(anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -226,14 +243,14 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(distributedCache).getMap(eq("pparker"));
+        verify(distributedCache).getMap("pparker");
         verify(localCache).saveMap(eq("pparker"), any(Map.class));
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Miss map from local cache, fetch from distributed, dont sync local")
-    public void testGet3() {
+    void testGet3() {
 
         when(localCache.getMap(anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -248,13 +265,13 @@ public class DoubleTierMapCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(distributedCache).getMap(eq("pparker"));
+        verify(distributedCache).getMap("pparker");
         verify(localCache, times(0)).saveMap(eq("pparker"), any(Map.class));
     }
 
     @Test
     @DisplayName("Check map exists on local cache")
-    public void testExist() {
+    void testExist() {
 
         when(localCache.existsMap(anyString())).thenReturn(Mono.just(true));
 
@@ -264,12 +281,12 @@ public class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(localCache).existsMap(eq("pparker"));
+        verify(localCache).existsMap("pparker");
     }
 
     @Test
     @DisplayName("Check field exists on map cache")
-    public void testFieldExist() {
+    void testFieldExist() {
 
         when(localCache.existsMap(anyString(), anyString())).thenReturn(Mono.just(true));
 
@@ -279,12 +296,12 @@ public class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(localCache).existsMap(eq("pparker"), eq("name"));
+        verify(localCache).existsMap("pparker", "name");
     }
 
     @Test
     @DisplayName("evict map in cache")
-    public void testEvict() {
+    void testEvict() {
 
         when(localCache.evictMap(anyString())).thenReturn(Mono.just(true));
 
@@ -294,12 +311,12 @@ public class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(localCache).evictMap(eq("pparker"));
+        verify(localCache).evictMap("pparker");
     }
 
     @Test
     @DisplayName("evict field in map cache")
-    public void testEvictField() {
+    void testEvictField() {
 
         when(localCache.evictMap(anyString(), anyString())).thenReturn(Mono.just(true));
 
@@ -309,6 +326,6 @@ public class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(localCache).evictMap(eq("pparker"), eq("name"));
+        verify(localCache).evictMap("pparker", "name");
     }
 }

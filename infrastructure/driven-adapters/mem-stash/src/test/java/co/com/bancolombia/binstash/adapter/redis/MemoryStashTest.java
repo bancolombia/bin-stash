@@ -9,12 +9,12 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class MemoryStashTest {
+class MemoryStashTest {
 
     private static final String TEST_KEY = "key1";
     private static final String TEST_VALUE = "Hello World";
@@ -23,7 +23,7 @@ public class MemoryStashTest {
     private Map<String, String> demoMap;
 
     @BeforeEach
-    public void prepare() {
+    void prepare() {
         demoMap = new HashMap<>();
         demoMap.put("name", "Peter");
         demoMap.put("lastName", "Parker");
@@ -35,14 +35,14 @@ public class MemoryStashTest {
     }
 
     @AfterEach
-    public void clean() {
+    void clean() {
         stash.evictAll();
         stash = null;
     }
 
     @Test
     @DisplayName("Should create instance")
-    public void testCreate() {
+    void testCreate() {
         MemoryStash stash2 = new MemoryStash.Builder()
                 .expireAfter(2)
                 .maxSize(10)
@@ -52,7 +52,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should create instance with defaults")
-    public void testCreateWithDefaults() {
+    void testCreateWithDefaults() {
         MemoryStash stash2 = new MemoryStash.Builder()
                 .build();
         assertNotNull(stash2);
@@ -60,7 +60,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should save element")
-    public void testSave() {
+    void testSave() {
         StepVerifier.create(stash.save(TEST_KEY, TEST_VALUE))
                 .expectSubscription()
                 .expectNext(TEST_VALUE)
@@ -70,7 +70,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should save hash")
-    public void testSaveHash() {
+    void testSaveHash() {
 
         StepVerifier.create(stash.hSave("h1", demoMap))
                 .expectSubscription()
@@ -86,7 +86,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should save hash element")
-    public void testSaveHashElement() {
+    void testSaveHashElement() {
         Mono<String> saveMono = stash.hSave("h2", demoMap)
                 .then(stash.hSave("h2", "location", "NJ"));
 
@@ -104,7 +104,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should not save with null key")
-    public void testSaveWithNullKey() {
+    void testSaveWithNullKey() {
         StepVerifier.create(stash.save(null, TEST_VALUE))
                 .expectSubscription()
                 .expectErrorMessage("Caching key cannot be null")
@@ -113,7 +113,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should save then get element")
-    public void testSaveGet() {
+    void testSaveGet() {
         Mono<String> op = stash.save(TEST_KEY, TEST_VALUE)
                 .then(stash.get(TEST_KEY));
 
@@ -126,7 +126,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should get hash element")
-    public void testGetHashElement() {
+    void testGetHashElement() {
         Map<String, String> values = new HashMap<>();
         values.put("email", "pparker@avengers.com");
         values.put("location", "Ny");
@@ -148,7 +148,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should get hash map")
-    public void testGetHashMap() {
+    void testGetHashMap() {
         Map<String, String> values = new HashMap<>();
         values.put("email", "pparker@avengers.com");
         values.put("location", "NJ");
@@ -170,7 +170,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should delete map")
-    public void testDeleteMap() {
+    void testDeleteMap() {
         Mono<Map<String, String>> saveMono = stash.hSave("h5", demoMap)
                 .then(stash.hDelete("h5"))
                 .then(stash.hGetAll("h5"));
@@ -188,7 +188,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should delete field from map")
-    public void testDeleteFieldMap() {
+    void testDeleteFieldMap() {
         Mono<Map<String, String>> saveMono = stash.hSave("h6", demoMap)
                 .then(stash.hDelete("h6", "name"))
                 .then(stash.hGetAll("h6"));
@@ -212,7 +212,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should get empty on unexistent key")
-    public void testGetEmpty() {
+    void testGetEmpty() {
         StepVerifier.create(stash.get("unexistent-key"))
                 .expectSubscription()
                 .expectComplete()
@@ -221,7 +221,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should handle get with null key")
-    public void testGetNullKey() {
+    void testGetNullKey() {
         StepVerifier.create(stash.get(null))
                 .expectSubscription()
                 .expectErrorMessage("Caching key cannot be null")
@@ -229,8 +229,26 @@ public class MemoryStashTest {
     }
 
     @Test
+    @DisplayName("Should get keys")
+    void testKeySet() {
+
+        Mono<Set<String>> keysMono = stash.hSave("h6", demoMap)
+                .then(stash.keySet());
+
+        List<String> expectedKeys = demoMap.keySet().stream()
+                .map(key -> "h6-"+key)
+                .collect(Collectors.toList());
+
+        StepVerifier.create(keysMono)
+                .expectSubscription()
+                .expectNext(new HashSet<>(expectedKeys))
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
     @DisplayName("Should save, expire, then try to get element")
-    public void testPutExpireGet() {
+    void testPutExpireGet() {
         Mono<String> op = stash.save(TEST_KEY, TEST_VALUE)
                 .delayElement(Duration.ofSeconds(2))
                 .then(stash.get(TEST_KEY));
@@ -243,7 +261,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should save, evict, then try to get element")
-    public void testPutEvictGet() {
+    void testPutEvictGet() {
         Mono<String> op = stash.save(TEST_KEY, TEST_VALUE)
                 .then(stash.evict(TEST_KEY))
                 .then(stash.get(TEST_KEY));
@@ -256,7 +274,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should test if key exists")
-    public void testExists() {
+    void testExists() {
         Mono<Boolean> op = stash.save(TEST_KEY, TEST_VALUE)
                 .then(stash.exists(TEST_KEY));
 
@@ -281,7 +299,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should handle null key on evit")
-    public void testEvictWithNullKey() {
+    void testEvictWithNullKey() {
         StepVerifier.create(stash.evict(null))
                 .expectSubscription()
                 .expectNext(false)
@@ -291,7 +309,7 @@ public class MemoryStashTest {
 
     @Test
     @DisplayName("Should save keys, then evict all")
-    public void testPutEvictAll() {
+    void testPutEvictAll() {
         Mono<String> op = stash.save(TEST_KEY, TEST_VALUE)
                 .then(stash.save(TEST_KEY+"b", TEST_VALUE))
                 .then(stash.evictAll())

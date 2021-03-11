@@ -3,23 +3,28 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.demo.Address;
 import co.com.bancolombia.binstash.demo.Person;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DoubleTierObjectCacheUseCaseTest {
+class DoubleTierObjectCacheUseCaseTest {
 
     private DoubleTierObjectCacheUseCase<Person> cache;
 
@@ -35,7 +40,7 @@ public class DoubleTierObjectCacheUseCaseTest {
     private Person p;
 
     @BeforeEach
-    public void before() {
+    void before() {
         p = new Person();
         p.setName("Peter Parker");
         p.setAddress(new Address("some-street", "NY"));
@@ -44,13 +49,13 @@ public class DoubleTierObjectCacheUseCaseTest {
 
     @Test
     @DisplayName("Create cache instance")
-    public void testCreate() {
-        assert cache != null;
+    void testCreate() {
+        assertNotNull(cache);
     }
 
     @Test
     @DisplayName("Save on local cache only")
-    public void testSaveOnlyLocal() {
+    void testSaveOnlyLocal() {
 
         when(memStash.save(anyString(), any(Person.class))).thenReturn(Mono.just(p));
 
@@ -60,14 +65,14 @@ public class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(memStash).save(eq("pparker"), eq(p));
-        verify(redisStash, times(0)).save(eq("pparker"), eq(p));
+        verify(memStash).save("pparker", p);
+        verify(redisStash, times(0)).save("pparker", p);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Save on local cache and then update distrubuted")
-    public void testSaveLocalAndUpstream() {
+    void testSaveLocalAndUpstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(memStash.save(anyString(), any(Person.class))).thenReturn(Mono.just(p));
@@ -82,14 +87,14 @@ public class DoubleTierObjectCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(memStash).save(eq("pparker"), eq(p));
-        verify(redisStash).exists(eq("pparker"));
-        verify(redisStash).save(eq("pparker"), eq(p));
+        verify(memStash).save("pparker", p);
+        verify(redisStash).exists("pparker");
+        verify(redisStash).save("pparker", p);
     }
 
     @Test
     @DisplayName("Get from local cache")
-    public void testGetFromLocal() {
+    void testGetFromLocal() {
 
         when(memStash.get(anyString(), any())).thenReturn(Mono.just(p));
 
@@ -100,14 +105,14 @@ public class DoubleTierObjectCacheUseCaseTest {
                 .verify();
 
         verify(memStash).get(eq("pparker"), any());
-        verify(memStash, times(0)).save(eq("pparker"), eq(p));
+        verify(memStash, times(0)).save("pparker", p);
         verify(redisStash, times(0)).get(eq("pparker"), any());
-        verify(redisStash, times(0)).save(eq("pparker"), eq(p));
+        verify(redisStash, times(0)).save("pparker", p);
     }
 
     @Test
     @DisplayName("Check element exists on local cache")
-    public void testExist() {
+    void testExist() {
 
         when(memStash.exists(anyString())).thenReturn(Mono.just(true));
 
@@ -117,13 +122,13 @@ public class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(memStash).exists(eq("pparker"));
+        verify(memStash).exists("pparker");
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Miss local cache, then fetch from distributed, but no save local")
-    public void testGetFromLocalAndUpstreamNotSyncDownstream() {
+    void testGetFromLocalAndUpstreamNotSyncDownstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(false);
@@ -140,15 +145,15 @@ public class DoubleTierObjectCacheUseCaseTest {
         Thread.sleep(300);
 
         verify(memStash).get(eq("pparker"), any());
-        verify(memStash, times(0)).save(eq("pparker"), eq(p));
+        verify(memStash, times(0)).save("pparker", p);
         verify(redisStash).get(eq("pparker"), any());
-        verify(redisStash, times(0)).save(eq("pparker"), eq(p));
+        verify(redisStash, times(0)).save("pparker", p);
     }
 
     @SneakyThrows
     @Test
     @DisplayName("Miss local cache, then fetch from distributed, then sync local cache")
-    public void testGetFromLocalAndUpstreamAndSyncDownstream() {
+    void testGetFromLocalAndUpstreamAndSyncDownstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
@@ -166,14 +171,46 @@ public class DoubleTierObjectCacheUseCaseTest {
         Thread.sleep(300);
 
         verify(memStash).get(eq("pparker"), any());
-        verify(memStash).save(eq("pparker"), eq(p));
+        verify(memStash).save("pparker", p);
         verify(redisStash).get(eq("pparker"), any());
-        verify(redisStash, times(0)).save(eq("pparker"), eq(p));
+        verify(redisStash, times(0)).save("pparker", p);
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Miss local cache, then fetch from distributed, then sync local cache II")
+    void testGetFromLocalAndUpstreamAndSyncDownstream2() {
+
+        ObjectCache<List<Person>> memStash2 = Mockito.mock(ObjectCache.class);
+        ObjectCache<List<Person>> redisStash2 = Mockito.mock(ObjectCache.class);
+
+        DoubleTierObjectCacheUseCase<List<Person>> cache2 =
+                new DoubleTierObjectCacheUseCase<>(memStash2, redisStash2, ruleEvaluatorUseCase);
+
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
+
+        when(memStash2.get(anyString(), any(TypeReference.class))).thenReturn(Mono.empty());
+        when(redisStash2.get(anyString(), any(TypeReference.class))).thenReturn(Mono.just(List.of(p)));
+        when(memStash2.save(anyString(), any())).thenReturn(Mono.just(List.of(p)));
+
+        StepVerifier.create(cache2.get("pparker", new TypeReference<>(){}))
+                .expectSubscription()
+                .expectNext(List.of(p))
+                .expectComplete()
+                .verify();
+
+        Thread.sleep(300);
+
+        verify(memStash2).get(eq("pparker"), any(TypeReference.class));
+        verify(memStash2).save("pparker", List.of(p));
+        verify(redisStash2).get(eq("pparker"), any(TypeReference.class));
+        verify(redisStash2, times(0)).save("pparker", List.of(p));
     }
 
     @Test
     @DisplayName("Miss local and distributed caches")
-    public void testShouldNotGetFromRedis() {
+    void testShouldNotGetFromRedis() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(memStash.get(anyString(), any())).thenReturn(Mono.empty());
@@ -189,8 +226,23 @@ public class DoubleTierObjectCacheUseCaseTest {
     }
 
     @Test
+    @DisplayName("Get keyset from local")
+    void testShoulGetKeyset() {
+
+        when(memStash.keySet()).thenReturn(Mono.just(Set.of("pparker")));
+
+        StepVerifier.create(cache.keySet())
+                .expectSubscription()
+                .expectNext(Set.of("pparker"))
+                .expectComplete()
+                .verify();
+
+        verify(memStash).keySet();
+    }
+
+    @Test
     @DisplayName("evict key in local cache only")
-    public void testEvict() {
+    void testEvict() {
         when(memStash.evict(anyString())).thenReturn(Mono.just(true));
 
         StepVerifier.create(cache.evict("pparker"))
@@ -199,14 +251,14 @@ public class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify(Duration.ofMillis(300));
 
-        verify(memStash).evict(eq("pparker"));
-        verify(redisStash, times(0)).evict(eq("pparker"));
+        verify(memStash).evict("pparker");
+        verify(redisStash, times(0)).evict("pparker");
     }
 
     @SneakyThrows
     @Test
     @DisplayName("evict key in local cache then @ distributed")
-    public void testEvictDobleTier() {
+    void testEvictDobleTier() {
         when(memStash.evict(anyString())).thenReturn(Mono.just(true));
         when(redisStash.evict(anyString())).thenReturn(Mono.just(true));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -219,13 +271,13 @@ public class DoubleTierObjectCacheUseCaseTest {
 
         Thread.sleep(300);
 
-        verify(memStash).evict(eq("pparker"));
-        verify(redisStash).evict(eq("pparker"));
+        verify(memStash).evict("pparker");
+        verify(redisStash).evict("pparker");
     }
 
     @Test
     @DisplayName("evict all keys")
-    public void testEvictAll() {
+    void testEvictAll() {
 
         when(memStash.evictAll()).thenReturn(Mono.just(true));
 

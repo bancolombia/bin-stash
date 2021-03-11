@@ -9,12 +9,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class LocalCacheConfigTest {
+class LocalCacheConfigTest {
 
     private LocalCacheConfig<Employee> config;
 
     @BeforeEach
-    public void before() {
+    void before() {
         config = new LocalCacheConfig<>();
         ReflectionTestUtils.setField(config, "expireTime", 1);
         ReflectionTestUtils.setField(config, "maxSize", 10);
@@ -22,13 +22,13 @@ public class LocalCacheConfigTest {
 
     @Test
     @DisplayName("Create memStash")
-    public void createStash() {
+    void createStash() {
         assertNotNull(config.memStash());
     }
 
     @Test
     @DisplayName("Create factory")
-    public void createFactory() {
+    void createFactory() {
         assertNotNull(config.localCacheFactory(config.memStash(), new ObjectMapper()));
     }
 }

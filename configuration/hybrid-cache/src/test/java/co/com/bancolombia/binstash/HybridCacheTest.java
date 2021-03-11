@@ -13,7 +13,7 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(MockitoExtension.class)
-public class HybridCacheTest {
+class HybridCacheTest {
 
     @Mock
     private ObjectCache<Employee> memObjectStash;
@@ -28,13 +28,13 @@ public class HybridCacheTest {
     private MapCache distributedMapStash;
 
     @Test
-    public void createObjectCache() {
+    void createObjectCache() {
         assertNotNull(new HybridCacheFactory<>(memObjectStash,
                 distObjectSash, localMapStash, distributedMapStash).newObjectCache());
     }
 
     @Test
-    public void createMapCache() {
+    void createMapCache() {
         assertNotNull(new HybridCacheFactory<>(memObjectStash,
                 distObjectSash, localMapStash, distributedMapStash).newMapCache());
 

@@ -1,6 +1,7 @@
 package co.com.bancolombia.binstash.config;
 
 import co.com.bancolombia.binstash.HybridCacheFactory;
+import co.com.bancolombia.binstash.SerializatorHelper;
 import co.com.bancolombia.binstash.SingleTierMapCacheUseCase;
 import co.com.bancolombia.binstash.SingleTierObjectCacheUseCase;
 import co.com.bancolombia.binstash.adapter.memory.MemoryStash;
@@ -60,13 +61,15 @@ public class HybridCacheConfig<V extends Object> {
     @Bean(name = "hybridLocalObjCacheBean")
     public ObjectCache<V> localObjectCache(@Qualifier("hybridMemStashBean") Stash memStash,
                                            ObjectMapper objectMapper) {
-        return new SingleTierObjectCacheUseCase<V>(memStash, objectMapper);
+        return new SingleTierObjectCacheUseCase<>(memStash,
+                new SerializatorHelper<>(objectMapper));
     }
 
     @Bean(name = "hybridDistObjCacheBean")
     public ObjectCache<V> distributedObjectCache(@Qualifier("hybridDistStashBean") Stash redisStash,
                                                  ObjectMapper objectMapper) {
-        return new SingleTierObjectCacheUseCase<V>(redisStash, objectMapper);
+        return new SingleTierObjectCacheUseCase<>(redisStash,
+                new SerializatorHelper<>(objectMapper));
     }
 
     @Bean(name = "hybridLocalMapCacheBean")
@@ -84,7 +87,7 @@ public class HybridCacheConfig<V extends Object> {
                                                     @Qualifier("hybridDistObjCacheBean") ObjectCache<V> distributedCache,
                                                     @Qualifier("hybridLocalMapCacheBean") MapCache localMapCache,
                                                     @Qualifier("hybridDistMapCacheBean") MapCache distributedMapCache) {
-        return new HybridCacheFactory<V>(localCache, distributedCache,
+        return new HybridCacheFactory<>(localCache, distributedCache,
                 localMapCache, distributedMapCache);
     }
 }

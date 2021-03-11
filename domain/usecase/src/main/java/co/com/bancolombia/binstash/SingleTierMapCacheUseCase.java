@@ -7,6 +7,7 @@ import lombok.extern.java.Log;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Set;
 
 @Log
 @RequiredArgsConstructor
@@ -42,6 +43,11 @@ public class SingleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Boolean> existsMap(String key, String field) {
         return stash.hGet(key, field).hasElement();
+    }
+
+    @Override
+    public Mono<Set<String>> keySet() {
+        return stash.keySet();
     }
 
     @Override

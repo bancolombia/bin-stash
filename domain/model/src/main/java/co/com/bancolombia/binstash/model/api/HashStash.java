@@ -3,6 +3,7 @@ package co.com.bancolombia.binstash.model.api;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Repo for storing Map&lt;String, String&gt> data.
@@ -42,6 +43,8 @@ public interface HashStash {
      * @return stored map if stored under 'key', Empty Mono otherwise.
      */
     Mono<Map<String, String>> hGetAll(String key);
+
+    Mono<Set<String>> keySet();
 
     /**
      * Deletes field from map.

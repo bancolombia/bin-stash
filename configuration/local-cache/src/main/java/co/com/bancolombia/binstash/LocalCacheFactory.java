@@ -13,13 +13,11 @@ public class LocalCacheFactory<V extends Object> {
     private final ObjectMapper objectMapper;
 
     public ObjectCache<V> newObjectCache() {
-        final SingleTierObjectCacheUseCase<V> cache = new SingleTierObjectCacheUseCase<>(this.memoryStash,
-                this.objectMapper);
-        return cache;
+        return new SingleTierObjectCacheUseCase<>(this.memoryStash,
+                new SerializatorHelper<>(this.objectMapper));
     }
 
     public MapCache newMapCache() {
-        final SingleTierMapCacheUseCase cache = new SingleTierMapCacheUseCase(this.memoryStash);
-        return cache;
+        return new SingleTierMapCacheUseCase(this.memoryStash);
     }
 }

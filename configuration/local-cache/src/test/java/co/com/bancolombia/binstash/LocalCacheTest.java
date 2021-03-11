@@ -10,8 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @ExtendWith(MockitoExtension.class)
-public class LocalCacheTest {
+class LocalCacheTest {
 
     @Mock
     private MemoryStash localStash;
@@ -20,14 +22,13 @@ public class LocalCacheTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void createCache() {
+    void createCache() {
         LocalCacheConfig<Employee> config = new LocalCacheConfig<>();
         LocalCacheFactory<Employee> factory = config.localCacheFactory(localStash, objectMapper);
         ObjectCache<Employee> cache = factory.newObjectCache();
-        assert cache != null;
+        assertNotNull(cache);
 
         MapCache mapCache = factory.newMapCache();
-        assert mapCache != null;
-
+        assertNotNull(mapCache);
     }
 }

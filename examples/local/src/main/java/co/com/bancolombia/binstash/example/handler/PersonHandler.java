@@ -9,6 +9,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 @Component
 public class PersonHandler {
 
@@ -20,10 +22,12 @@ public class PersonHandler {
     }
 
     public Mono<ServerResponse> fetchNoCache(ServerRequest request) {
-        return this.dummyRepo.findByName("some-name").flatMap(person -> {
-            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue("{ \"msg\": \"Hello, Spring!\" }"));
-        });
+        String key = Optional.of(request.pathVariable("name"))
+                .orElse("Jhon Smith");
+        return this.dummyRepo.findByName(key).flatMap(person ->
+                ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(person))
+        );
     }
 
 }

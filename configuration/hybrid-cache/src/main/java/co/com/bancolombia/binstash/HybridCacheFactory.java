@@ -21,9 +21,8 @@ public class HybridCacheFactory<V extends Object> {
 
     public ObjectCache<V> newObjectCache(List<SyncRule> syncRules) {
         final RuleEvaluatorUseCase ruleEvaluatorUseCase = new RuleEvaluatorUseCase(syncRules);
-        final DoubleTierObjectCacheUseCase<V> cache = new DoubleTierObjectCacheUseCase<>(this.localCache,
+        return new DoubleTierObjectCacheUseCase<>(this.localCache,
                 this.distributedCache, ruleEvaluatorUseCase);
-        return cache;
     }
 
     public MapCache newMapCache() {
@@ -32,8 +31,7 @@ public class HybridCacheFactory<V extends Object> {
 
     public MapCache newMapCache(List<SyncRule> syncRules) {
         final RuleEvaluatorUseCase ruleEvaluatorUseCase = new RuleEvaluatorUseCase(syncRules);
-        final DoubleTierMapCacheUseCase cache = new DoubleTierMapCacheUseCase(this.localMapCache,
+        return new DoubleTierMapCacheUseCase(this.localMapCache,
                 this.distributedMapCache, ruleEvaluatorUseCase);
-        return cache;
     }
 }

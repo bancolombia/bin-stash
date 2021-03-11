@@ -28,7 +28,6 @@ public class LocalCacheConfig<V extends Object> {
     @Bean
     public LocalCacheFactory<V> localCacheFactory(@Qualifier("localMemStashBean") MemoryStash memStash,
                                                   ObjectMapper objectMapper) {
-        LocalCacheFactory<V> factory = new LocalCacheFactory<>(memStash, objectMapper);
-        return factory;
+        return new LocalCacheFactory<>(memStash, objectMapper);
     }
 }

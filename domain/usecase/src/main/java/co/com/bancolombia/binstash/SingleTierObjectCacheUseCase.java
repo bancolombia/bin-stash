@@ -2,18 +2,19 @@ package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.model.api.ObjectCache;
 import co.com.bancolombia.binstash.model.api.StringStash;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import reactor.core.publisher.Mono;
+
+import java.util.Set;
 
 @Log
 @RequiredArgsConstructor
 public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
 
     private final StringStash cache;
-    private final ObjectMapper objectMapper;
+    private final SerializatorHelper<T> serializatorHelper;
 
     @Override
     public Mono<T> save(String key, T value) {
@@ -31,9 +32,21 @@ public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
     }
 
     @Override
+    public Mono<T> get(String key, Object ref) {
+        return Mono.just(key)
+                .flatMap(cache::get)
+                .map(serialized -> this.deserialize(serialized, (TypeReference<? extends T>) ref));
+    }
+
+    @Override
     public Mono<Boolean> exists(String key) {
         return Mono.just(key)
                 .flatMap(cache::exists);
+    }
+
+    @Override
+    public Mono<Set<String>> keySet() {
+        return cache.keySet();
     }
 
     @Override
@@ -47,20 +60,14 @@ public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
     }
 
     private String serialize(T obj) {
-        try {
-            return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            log.severe(e.getMessage());
-            return null;
-        }
+        return serializatorHelper.serialize(obj);
     }
 
     private T deserialize(String obj, Class<T> clazz) {
-        try {
-            return objectMapper.readValue(obj, clazz);
-        } catch (JsonProcessingException e) {
-            log.severe(e.getMessage());
-            return null;
-        }
+        return this.serializatorHelper.deserializeTo(obj, clazz);
+    }
+
+    private T deserialize(String obj, TypeReference<? extends T> ref) {
+        return this.serializatorHelper.deserializeWith(obj, ref);
     }
 }

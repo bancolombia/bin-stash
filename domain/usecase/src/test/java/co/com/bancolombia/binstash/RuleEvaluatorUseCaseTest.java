@@ -9,22 +9,24 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-public class RuleEvaluatorUseCaseTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class RuleEvaluatorUseCaseTest {
 
     @Test
     @DisplayName("Create instance")
-    public void testCreate() {
+    void testCreate() {
         RuleEvaluatorUseCase emptyREV = new RuleEvaluatorUseCase(null);
-        assert emptyREV.getRules().length == 1;
+        assertEquals(1, emptyREV.getRules().length);
 
         SyncRule r1 = (keyArg, syncType) -> true;
         RuleEvaluatorUseCase singleREV = new RuleEvaluatorUseCase(Collections.singletonList(r1));
-        assert singleREV.getRules().length == 1;
+        assertEquals(1, singleREV.getRules().length);
     }
 
     @Test
     @DisplayName("Evaluate simple expression")
-    public void testEvaluateExpression() {
+    void testEvaluateExpression() {
 
         SyncRule r1 = (keyArg, syncType) -> keyArg.startsWith("some") && syncType == SyncType.DOWNSTREAM;
 
@@ -32,21 +34,21 @@ public class RuleEvaluatorUseCaseTest {
                 r1
         ));
 
-        assert rev.evalForDownstreamSync("some:key");
+        assertTrue(rev.evalForDownstreamSync("some:key"));
 
-        assert rev.evalForDownstreamSync("some_key@at|mem");
+        assertTrue(rev.evalForDownstreamSync("some_key@at|mem"));
 
-        assert !rev.evalForDownstreamSync("");
+        assertFalse(rev.evalForDownstreamSync(""));
 
-        assert !rev.evalForDownstreamSync(null);
+        assertFalse(rev.evalForDownstreamSync(null));
 
-        assert !rev.evalForUpstreamSync("some:key");
+        assertFalse(rev.evalForUpstreamSync("some:key"));
 
     }
 
     @Test
     @DisplayName("Evaluate key beginning expression")
-    public void testEvaluateBegExpression() {
+    void testEvaluateBegExpression() {
 
         final Pattern pattern = Pattern.compile("^d2b\\S+");
         final SyncRule r1 = (keyArg, syncType) -> {
@@ -59,13 +61,13 @@ public class RuleEvaluatorUseCaseTest {
                 r1
         ));
 
-        assert !rev.evalForDownstreamSync("some:key");
+        assertFalse(rev.evalForDownstreamSync("some:key"));
 
-        assert rev.evalForDownstreamSync("d2b-ms1-some-key");
+        assertTrue(rev.evalForDownstreamSync("d2b-ms1-some-key"));
 
-        assert !rev.evalForDownstreamSync("");
+        assertFalse(rev.evalForDownstreamSync(""));
 
-        assert !rev.evalForDownstreamSync(null);
+        assertFalse(rev.evalForDownstreamSync(null));
     }
 
 }

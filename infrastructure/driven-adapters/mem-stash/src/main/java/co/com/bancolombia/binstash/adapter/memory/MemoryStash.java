@@ -11,6 +11,7 @@ import reactor.util.function.Tuples;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -39,9 +40,7 @@ public class MemoryStash implements Stash {
         return Mono.fromSupplier(() -> {
             if (StringUtils.isBlank(key) || value == null || value.isEmpty())
                 throw new InvalidKeyException(ERROR_KEY_MSG);
-            value.forEach((name, item) -> {
-                caffeineCache.put(key+"-"+name, item);
-            });
+            value.forEach((name, item) -> caffeineCache.put(key+"-"+name, item));
             return value;
         });
     }
@@ -63,6 +62,11 @@ public class MemoryStash implements Stash {
                 throw new InvalidKeyException(ERROR_KEY_MSG);
             return caffeineCache.getIfPresent(key);
         });
+    }
+
+    @Override
+    public Mono<Set<String>> keySet() {
+        return Mono.just(caffeineCache.asMap().keySet());
     }
 
     @Override

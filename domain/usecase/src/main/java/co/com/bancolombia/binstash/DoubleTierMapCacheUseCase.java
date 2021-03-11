@@ -6,13 +6,14 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
+import java.util.Set;
 
 public class DoubleTierMapCacheUseCase implements MapCache {
 
+    private static final Scheduler elastic_scheduler = Schedulers.boundedElastic();
     private final MapCache localCache;
     private final MapCache distributedCache;
     private final RuleEvaluatorUseCase ruleEvaluatorUseCase;
-    private final static Scheduler elastic_scheduler = Schedulers.boundedElastic();
 
     public DoubleTierMapCacheUseCase(MapCache localCache,
                                      MapCache distributedCache,
@@ -90,6 +91,11 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Boolean> existsMap(String key, String field) {
         return localCache.existsMap(key, field);
+    }
+
+    @Override
+    public Mono<Set<String>> keySet() {
+        return localCache.keySet();
     }
 
     @Override

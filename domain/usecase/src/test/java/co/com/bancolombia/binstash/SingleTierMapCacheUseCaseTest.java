@@ -12,13 +12,15 @@ import reactor.test.StepVerifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SingleTierMapCacheUseCaseTest {
+class SingleTierMapCacheUseCaseTest {
 
     private SingleTierMapCacheUseCase cache;
 
@@ -28,7 +30,7 @@ public class SingleTierMapCacheUseCaseTest {
     private HashStash mockedStash;
 
     @BeforeEach
-    public void before() {
+    void before() {
         cache = new SingleTierMapCacheUseCase(mockedStash);
         demoMap = new HashMap<>();
         demoMap.put("name", "Peter");
@@ -37,13 +39,13 @@ public class SingleTierMapCacheUseCaseTest {
 
     @Test
     @DisplayName("Create cache")
-    public void testCreate() {
-        assert cache != null;
+    void testCreate() {
+        assertNotNull(cache);
     }
 
     @Test
     @DisplayName("save map cache")
-    public void testSave() {
+    void testSave() {
 
         when(mockedStash.hSave(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
 
@@ -53,12 +55,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hSave(eq("pparker"), eq(demoMap));
+        verify(mockedStash).hSave("pparker", demoMap);
     }
 
     @Test
     @DisplayName("save map prop in cache")
-    public void testSaveProp() {
+    void testSaveProp() {
 
         when(mockedStash.hSave(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
 
@@ -68,12 +70,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hSave(eq("pparker"), eq("city"), eq("NY"));
+        verify(mockedStash).hSave("pparker", "city", "NY");
     }
 
     @Test
     @DisplayName("Get map from cache")
-    public void testGet() {
+    void testGet() {
 
         when(mockedStash.hGetAll(anyString())).thenReturn(Mono.just(demoMap));
 
@@ -83,12 +85,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGetAll(eq("pparker"));
+        verify(mockedStash).hGetAll("pparker");
     }
 
     @Test
     @DisplayName("Get map field from cache")
-    public void testGetField() {
+    void testGetField() {
 
         when(mockedStash.hGet(anyString(), anyString())).thenReturn(Mono.just("Peter"));
 
@@ -98,12 +100,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGet(eq("pparker"), eq("name"));
+        verify(mockedStash).hGet("pparker", "name");
     }
 
     @Test
     @DisplayName("Get map field from cache II")
-    public void testGetField2() {
+    void testGetField2() {
 
         when(mockedStash.hGet(anyString(), anyString())).thenReturn(Mono.empty());
 
@@ -112,12 +114,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGet(eq("pparker"), eq("name"));
+        verify(mockedStash).hGet("pparker", "name");
     }
 
     @Test
     @DisplayName("Check map exists on cache")
-    public void testExist() {
+    void testExist() {
 
         when(mockedStash.hGetAll(anyString())).thenReturn(Mono.just(demoMap));
 
@@ -127,12 +129,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGetAll(eq("pparker"));
+        verify(mockedStash).hGetAll("pparker");
     }
 
     @Test
     @DisplayName("Check map doesnt exists on cache")
-    public void testNotExist() {
+    void testNotExist() {
 
         when(mockedStash.hGetAll(anyString())).thenReturn(Mono.empty());
 
@@ -142,12 +144,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGetAll(eq("pparker"));
+        verify(mockedStash).hGetAll("pparker");
     }
 
     @Test
     @DisplayName("Check field exists on map cache")
-    public void testFieldExist() {
+    void testFieldExist() {
 
         when(mockedStash.hGet(anyString(), anyString())).thenReturn(Mono.just("Peter"));
 
@@ -157,12 +159,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGet(eq("pparker"), eq("name"));
+        verify(mockedStash).hGet("pparker", "name");
     }
 
     @Test
     @DisplayName("Verify field doesnt exists on map cache")
-    public void testFieldNotExist() {
+    void testFieldNotExist() {
 
         when(mockedStash.hGet(anyString(), anyString())).thenReturn(Mono.empty());
 
@@ -172,12 +174,28 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hGet(eq("pparker"), eq("name"));
+        verify(mockedStash).hGet("pparker", "name");
     }
 
     @Test
+    @DisplayName("Should get keyset")
+    void testKeySet() {
+
+        when(mockedStash.keySet()).thenReturn(Mono.just(Set.of("pparker-name")));
+
+        StepVerifier.create(cache.keySet())
+                .expectSubscription()
+                .expectNext(Set.of("pparker-name"))
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).keySet();
+    }
+
+
+    @Test
     @DisplayName("evict map in cache")
-    public void testEvict() {
+    void testEvict() {
 
         when(mockedStash.hDelete(anyString())).thenReturn(Mono.just(true));
 
@@ -187,12 +205,12 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hDelete(eq("pparker"));
+        verify(mockedStash).hDelete("pparker");
     }
 
     @Test
     @DisplayName("evict field in map cache")
-    public void testEvictField() {
+    void testEvictField() {
 
         when(mockedStash.hDelete(anyString(), anyString())).thenReturn(Mono.just(true));
 
@@ -202,7 +220,7 @@ public class SingleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).hDelete(eq("pparker"), eq("name"));
+        verify(mockedStash).hDelete("pparker", "name");
     }
 
 
