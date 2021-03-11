@@ -2,7 +2,7 @@
 
 Library for caching data:
 
-- In memory (using Caffeine) or with a distributed cache (Redis using Lettuce Reactive) making a single tier cache.
+- In memory (using Caffeine) or with a centralized cache (Redis using Lettuce Reactive) making a single tier cache.
 - Or using both as a two tier stage cache.
 
 # Getting Started
@@ -19,17 +19,17 @@ For local cache only
 </dependency>
 ```
 
-For a distributed (redis) cache only
+For a centralized (redis) cache only
 
 ```
 <dependency>
   <groupId>co.com.bancolombia.binstash</groupId>
-  <artifactId>distributed-cache</artifactId>
+  <artifactId>centralized-cache</artifactId>
   <version>1.0.0</version>
 </dependency>
 ```
 
-For an hybrid (local and distributed) cache
+For an hybrid (local and centralized) cache
 
 ```
 <dependency>
@@ -74,17 +74,17 @@ stash:
     }
     ```
 
-   3.2. For Distributed Cache
+   3.2. For Centralized Cache
 
     ```java
     @Configuration
-    public class DistributedExampleConfiguration {
+    public class CentralizedExampleConfiguration {
     
         [...]
     
         @Bean
-        public ObjectCache<Person> objectCache(DistributedCacheFactory<> distCacheFactory) {
-            new distCacheFactory.newObjectCache();
+        public ObjectCache<Person> objectCache(CentralizedCacheFactory<> centralizedCacheFactory) {
+            return centralizedCacheFactory.newObjectCache();
         }
     }
     ```
@@ -99,8 +99,8 @@ stash:
     
         @Bean
         public List<SyncRule> cacheSyncRules() {
-            // Just one rule in this demo. Push local cache key-values to distributed cache, disregarding syncType 
-            // (UPSTREAM or DOWNSTREAM) and pull distributed cache key-values to local cache when affected 
+            // Just one rule in this demo. Push local cache key-values to centralized cache, disregarding syncType 
+            // (UPSTREAM or DOWNSTREAM) and pull centralized cache key-values to local cache when affected 
             // key (keyArg) is ANY string.
             SyncRule simpleSyncRule = (keyArg, syncType) -> true;
             return Collections.singletonList(simpleSyncRule);
@@ -160,19 +160,19 @@ When using the cache in hybrid mode (two tier cache), requests works as describe
 
 **GET Operation**
 
-1. When a lookup misses local cache, and upstream sync is allowed, bin-stash tries to lookup in the distributed cache.
-2. If the lookup operation in the distributed cache hits a key, then return the value. Also if downtream sync 
+1. When a lookup misses local cache, and upstream sync is allowed, bin-stash tries to lookup in the centralized cache.
+2. If the lookup operation in the centralized cache hits a key, then return the value. Also if downtream sync 
    is allowed, the key-value is replicated in local cache.
    
 **SAVE operation**
 
 1. Writes are performed in local cache, and if upstream sync is allowed, bin-stash tries to write key-value in the
-   distributed cache, given this key doesn't previously exists.
+   centralized cache, given this key doesn't previously exists.
 
 **EVICT operation**
 
 1. `Evict(key)` is performed in local cache, and if upstream sync is allowed, bin-stash tries to evict key-value in the
-   distributed cache.
+   centralized cache.
 2. `EvictAll` operation it's performed on local and is not syncronized upstream.   
 
 **Sync Rules**
