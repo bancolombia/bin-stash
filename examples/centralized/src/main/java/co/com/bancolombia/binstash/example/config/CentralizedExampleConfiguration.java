@@ -1,11 +1,11 @@
 package co.com.bancolombia.binstash.example.config;
 
 import co.com.bancolombia.binstash.CentralizedCacheFactory;
-import co.com.bancolombia.binstash.example.handler.PersonHandler;
-import co.com.bancolombia.binstash.example.repository.PersonRepo;
 import co.com.bancolombia.binstash.example.handler.PersonCachedHandler;
+import co.com.bancolombia.binstash.example.handler.PersonHandler;
 import co.com.bancolombia.binstash.example.model.DummyRepo;
 import co.com.bancolombia.binstash.example.model.Person;
+import co.com.bancolombia.binstash.example.repository.PersonRepo;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +30,8 @@ public class CentralizedExampleConfiguration {
     }
 
     @Bean
-    public ObjectCache<Person> objectCache(CentralizedCacheFactory<Person> distCacheFactory) {
-        return distCacheFactory.newObjectCache();
+    public ObjectCache<Person> objectCache(CentralizedCacheFactory<Person> centralizedCacheFactory) {
+        return centralizedCacheFactory.newObjectCache();
     }
 
     @Bean

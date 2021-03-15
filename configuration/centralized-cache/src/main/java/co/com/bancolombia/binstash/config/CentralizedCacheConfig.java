@@ -27,7 +27,7 @@ public class CentralizedCacheConfig<V extends Object> {
     @Value("${stash.redis.expireTime:60}")
     private int redisExpireTime;
 
-    @Bean(name = "distMemStashBean")
+    @Bean(name = "centralMemStashBean")
     public Stash redisStash() {
         return new RedisStash.Builder()
                 .expireAfter(redisExpireTime)
@@ -39,7 +39,7 @@ public class CentralizedCacheConfig<V extends Object> {
     }
 
     @Bean
-    public CentralizedCacheFactory<V> newFactory(@Qualifier("distMemStashBean") Stash distributedStash,
+    public CentralizedCacheFactory<V> newFactory(@Qualifier("centralMemStashBean") Stash distributedStash,
                                                  ObjectMapper objectMapper) {
         return new CentralizedCacheFactory<>(distributedStash, objectMapper);
     }

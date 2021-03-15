@@ -47,7 +47,7 @@ public class HybridCacheConfig<V extends Object> {
                 .build();
     }
 
-    @Bean(name = "hybridDistStashBean")
+    @Bean(name = "hybridCentralStashBean")
     public Stash redisStash() {
         return new RedisStash.Builder()
                 .expireAfter(redisExpireTime)
@@ -65,8 +65,8 @@ public class HybridCacheConfig<V extends Object> {
                 new SerializatorHelper<>(objectMapper));
     }
 
-    @Bean(name = "hybridDistObjCacheBean")
-    public ObjectCache<V> distributedObjectCache(@Qualifier("hybridDistStashBean") Stash redisStash,
+    @Bean(name = "hybridCentralObjCacheBean")
+    public ObjectCache<V> centralizedObjectCache(@Qualifier("hybridCentralStashBean") Stash redisStash,
                                                  ObjectMapper objectMapper) {
         return new SingleTierObjectCacheUseCase<>(redisStash,
                 new SerializatorHelper<>(objectMapper));
@@ -77,17 +77,17 @@ public class HybridCacheConfig<V extends Object> {
         return new SingleTierMapCacheUseCase(memStash);
     }
 
-    @Bean(name = "hybridDistMapCacheBean")
-    public MapCache distributedMapCache(@Qualifier("hybridDistStashBean") Stash redisStash) {
+    @Bean(name = "hybridCentralMapCacheBean")
+    public MapCache centralizedMapCache(@Qualifier("hybridCentralStashBean") Stash redisStash) {
         return new SingleTierMapCacheUseCase(redisStash);
     }
 
     @Bean
-    public HybridCacheFactory<V> hybridCacheFactory(@Qualifier("hybridLocalObjCacheBean") ObjectCache<V> localCache,
-                                                    @Qualifier("hybridDistObjCacheBean") ObjectCache<V> distributedCache,
+    public HybridCacheFactory<V> hybridCacheFactory(@Qualifier("hybridLocalObjCacheBean") ObjectCache<V> localObjectCache,
+                                                    @Qualifier("hybridCentralObjCacheBean") ObjectCache<V> centralizedObjectCache,
                                                     @Qualifier("hybridLocalMapCacheBean") MapCache localMapCache,
-                                                    @Qualifier("hybridDistMapCacheBean") MapCache distributedMapCache) {
-        return new HybridCacheFactory<>(localCache, distributedCache,
-                localMapCache, distributedMapCache);
+                                                    @Qualifier("hybridCentralMapCacheBean") MapCache centralizedMapCache) {
+        return new HybridCacheFactory<>(localObjectCache, centralizedObjectCache,
+                localMapCache, centralizedMapCache);
     }
 }
