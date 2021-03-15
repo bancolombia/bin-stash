@@ -85,11 +85,10 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
         verify(memStash).save("pparker", p);
-        verify(redisStash).exists("pparker");
-        verify(redisStash).save("pparker", p);
+
+        verify(redisStash, timeout(300)).exists("pparker");
+        verify(redisStash, timeout(300)).save("pparker", p);
     }
 
     @Test
@@ -142,12 +141,12 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
 
         verify(memStash).get(eq("pparker"), any());
-        verify(memStash, times(0)).save("pparker", p);
         verify(redisStash).get(eq("pparker"), any());
-        verify(redisStash, times(0)).save("pparker", p);
+
+        verify(memStash, timeout(300).times(0)).save("pparker", p);
+        verify(redisStash, timeout(300).times(0)).save("pparker", p);
     }
 
     @SneakyThrows
@@ -168,12 +167,11 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
         verify(memStash).get(eq("pparker"), any());
-        verify(memStash).save("pparker", p);
-        verify(redisStash).get(eq("pparker"), any());
-        verify(redisStash, times(0)).save("pparker", p);
+
+        verify(memStash, timeout(200)).save("pparker", p);
+        verify(redisStash, timeout(200)).get(eq("pparker"), any());
+        verify(redisStash, timeout(200).times(0)).save("pparker", p);
     }
 
     @SneakyThrows
@@ -200,12 +198,10 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(memStash2).get(eq("pparker"), any(TypeReference.class));
-        verify(memStash2).save("pparker", List.of(p));
-        verify(redisStash2).get(eq("pparker"), any(TypeReference.class));
-        verify(redisStash2, times(0)).save("pparker", List.of(p));
+        verify(memStash2, timeout(200)).get(eq("pparker"), any(TypeReference.class));
+        verify(memStash2, timeout(200)).save("pparker", List.of(p));
+        verify(redisStash2, timeout(200)).get(eq("pparker"), any(TypeReference.class));
+        verify(redisStash2, timeout(200).times(0)).save("pparker", List.of(p));
     }
 
     @Test
@@ -269,10 +265,8 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
         verify(memStash).evict("pparker");
-        verify(redisStash).evict("pparker");
+        verify(redisStash, timeout(200)).evict("pparker");
     }
 
     @Test

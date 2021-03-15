@@ -62,10 +62,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache).saveMap("pparker", demoMap);
+        verify(distributedCache, timeout(300)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -82,9 +80,11 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectNext(demoMap)
                 .expectComplete()
                 .verify();
-        Thread.sleep(300);
+
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache, times(0)).saveMap("pparker", demoMap);
+        verify(distributedCache, timeout(300)
+                .times(0)
+        ).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -101,9 +101,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache, times(0)).saveMap("pparker", demoMap);
+        verify(distributedCache, timeout(300).times(0)).saveMap("pparker", demoMap);
     }
 
 
@@ -122,10 +121,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
         verify(localCache).saveMap("pparker", "city", "NY");
-        verify(distributedCache).saveMap("pparker", "city", "NY");
+        verify(distributedCache, timeout(300)).saveMap("pparker", "city", "NY");
     }
 
 
@@ -142,9 +139,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(distributedCache, times(0)).getMap("pparker");
+        verify(distributedCache, timeout(300).times(0)).getMap("pparker");
     }
 
     @SneakyThrows
@@ -176,9 +171,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(distributedCache, times(0)).getMap("pparker");
+        verify(distributedCache, timeout(300).times(0)).getMap("pparker");
     }
 
     @SneakyThrows
@@ -198,10 +191,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(distributedCache).getMap("pparker", "city");
-        verify(localCache).saveMap("pparker", "city", "NY");
+        verify(distributedCache, timeout(300)).getMap("pparker", "city");
+        verify(localCache, timeout(300)).saveMap("pparker", "city", "NY");
     }
 
     @SneakyThrows
@@ -218,10 +209,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(distributedCache).getMap("pparker", "city");
-        verify(localCache, times(0)).saveMap("pparker", "city", "NY");
+        verify(distributedCache, timeout(300)).getMap("pparker", "city");
+        verify(localCache, timeout(300).times(0)).saveMap("pparker", "city", "NY");
     }
 
     @SneakyThrows
@@ -241,10 +230,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(distributedCache).getMap("pparker");
-        verify(localCache).saveMap(eq("pparker"), any(Map.class));
+        verify(distributedCache, timeout(300)).getMap("pparker");
+        verify(localCache, timeout(300)).saveMap(eq("pparker"), any(Map.class));
     }
 
     @SneakyThrows
@@ -263,10 +250,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        Thread.sleep(300);
-
-        verify(distributedCache).getMap("pparker");
-        verify(localCache, times(0)).saveMap(eq("pparker"), any(Map.class));
+        verify(distributedCache, timeout(300)).getMap("pparker");
+        verify(localCache, timeout(300).
+                times(0)).saveMap(eq("pparker"), any(Map.class));
     }
 
     @Test
