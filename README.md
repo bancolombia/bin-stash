@@ -1,5 +1,11 @@
 # Bin-Stash 
 
+![](https://github.com/bancolombia/bin-stash/workflows/Java%20CI%20with%20Gradle/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bancolombia_bin-stash&metric=alert_status)](https://sonarcloud.io/dashboard?id=bancolombia_bin-stash)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bancolombia_bin-stash&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=bancolombia_bin-stash)
+[![codecov](https://codecov.io/gh/bancolombia/bin-stash/branch/master/graph/badge.svg)](https://codecov.io/gh/bancolombia/bin-stash)
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/bancolombia/bin-stash/blob/master/LICENSE)
+
 Library for caching data:
 
 - In memory (using Caffeine) or with a centralized cache (Redis using Lettuce Reactive) making a single tier cache.
