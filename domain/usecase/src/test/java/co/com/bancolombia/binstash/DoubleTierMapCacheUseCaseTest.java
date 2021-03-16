@@ -60,12 +60,10 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verifyThenAssertThat()
-                .hasNotDiscardedElements()
-                .hasNotDroppedElements();
+                .verify();
 
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache).saveMap("pparker", demoMap);
+        verify(distributedCache, timeout(1000)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -81,12 +79,10 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verifyThenAssertThat()
-                .hasNotDiscardedElements()
-                .hasNotDroppedElements();
+                .verify();
 
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache, times(0)).saveMap("pparker", demoMap);
+        verify(distributedCache, timeout(1000).times(0)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -128,7 +124,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDroppedElements();
 
         verify(localCache).saveMap("pparker", "city", "NY");
-        verify(distributedCache).saveMap("pparker", "city", "NY");
+        verify(distributedCache, timeout(1000)).saveMap("pparker", "city", "NY");
     }
 
 
