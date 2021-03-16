@@ -1,6 +1,6 @@
 dependencies {
-    compile project(':usecase')
-    compile project(':mem-stash')
+    compile project(':bin-stash-usecase')
+    compile project(':bin-stash-memory')
     implementation 'org.springframework:spring-core'
     implementation 'org.springframework:spring-context'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
