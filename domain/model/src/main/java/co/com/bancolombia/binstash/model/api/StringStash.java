@@ -19,8 +19,8 @@ public interface StringStash {
 
     /**
      * Gets a value from the store.
-     * @param key
-     * @return
+     * @param key the key to be obtainer
+     * @return the string value stored under key
      */
     Mono<String> get(String key);
 

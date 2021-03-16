@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Repo for storing Map&lt;String, String&gt> data.
+ * Repo for storing Map&lt;String, String&gt; data.
  */
 public interface HashStash {
 
