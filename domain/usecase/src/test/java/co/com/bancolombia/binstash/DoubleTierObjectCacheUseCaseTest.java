@@ -73,8 +73,8 @@ class DoubleTierObjectCacheUseCaseTest {
     @DisplayName("Save on local cache and then update distrubuted")
     void testSaveLocalAndUpstream() {
 
-        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(memStash.save(anyString(), any(Person.class))).thenReturn(Mono.just(p));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(redisStash.exists(anyString())).thenReturn(Mono.just(false));
         when(redisStash.save(anyString(), any(Person.class))).thenReturn(Mono.just(p));
 
@@ -82,13 +82,11 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(p)
                 .expectComplete()
-                .verifyThenAssertThat()
-                .hasNotDiscardedElements()
-                .hasNotDroppedElements();
+                .verify();
 
         verify(memStash).save("pparker", p);
-        verify(redisStash).exists("pparker");
-        verify(redisStash).save("pparker", p);
+        verify(redisStash, timeout(1000)).exists("pparker");
+        verify(redisStash, timeout(1000)).save("pparker", p);
     }
 
     @Test
@@ -126,7 +124,7 @@ class DoubleTierObjectCacheUseCaseTest {
 
     @SneakyThrows
     @Test
-    @DisplayName("Miss local cache, then fetch from distributed, but no save local")
+    @DisplayName("Miss local cache, then fetch from centralized, but no save local")
     void testGetFromLocalAndUpstreamNotSyncDownstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -151,7 +149,7 @@ class DoubleTierObjectCacheUseCaseTest {
 
     @SneakyThrows
     @Test
-    @DisplayName("Miss local cache, then fetch from distributed, then sync local cache")
+    @DisplayName("Miss local cache, then fetch from centralized, then sync local cache")
     void testGetFromLocalAndUpstreamAndSyncDownstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -177,7 +175,7 @@ class DoubleTierObjectCacheUseCaseTest {
 
     @SneakyThrows
     @Test
-    @DisplayName("Miss local cache, then fetch from distributed, then sync local cache II")
+    @DisplayName("Miss local cache, then fetch from centralized, then sync local cache II")
     void testGetFromLocalAndUpstreamAndSyncDownstream2() {
 
         ObjectCache<List<Person>> memStash2 = Mockito.mock(ObjectCache.class);
@@ -208,7 +206,7 @@ class DoubleTierObjectCacheUseCaseTest {
     }
 
     @Test
-    @DisplayName("Miss local and distributed caches")
+    @DisplayName("Miss local and centralized caches")
     void testShouldNotGetFromRedis() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
@@ -258,7 +256,7 @@ class DoubleTierObjectCacheUseCaseTest {
 
     @SneakyThrows
     @Test
-    @DisplayName("evict key in local cache then @ distributed")
+    @DisplayName("evict key in local cache then @ centralized")
     void testEvictDobleTier() {
         when(memStash.evict(anyString())).thenReturn(Mono.just(true));
         when(redisStash.evict(anyString())).thenReturn(Mono.just(true));

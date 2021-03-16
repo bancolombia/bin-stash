@@ -26,7 +26,7 @@ class DoubleTierMapCacheUseCaseTest {
     @Mock
     private MapCache localCache;
     @Mock
-    private MapCache distributedCache;
+    private MapCache centralizedCache;
     @Mock
     private RuleEvaluatorUseCase ruleEvaluatorUseCase;
 
@@ -34,7 +34,7 @@ class DoubleTierMapCacheUseCaseTest {
 
     @BeforeEach
     void before() {
-        cache = new DoubleTierMapCacheUseCase(localCache, distributedCache, ruleEvaluatorUseCase);
+        cache = new DoubleTierMapCacheUseCase(localCache, centralizedCache, ruleEvaluatorUseCase);
         demoMap = new HashMap<>();
         demoMap.put("name", "Peter");
         demoMap.put("lastName", "Parker");
@@ -53,8 +53,8 @@ class DoubleTierMapCacheUseCaseTest {
 
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(distributedCache.existsMap(anyString())).thenReturn(Mono.just(false));
-        when(distributedCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
+        when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(false));
+        when(centralizedCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
 
         StepVerifier.create(cache.saveMap("pparker", demoMap))
                 .expectSubscription()
@@ -63,7 +63,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache, timeout(1000)).saveMap("pparker", demoMap);
+        verify(centralizedCache, timeout(1000)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -73,7 +73,7 @@ class DoubleTierMapCacheUseCaseTest {
 
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(distributedCache.existsMap(anyString())).thenReturn(Mono.just(true));
+        when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(true));
 
         StepVerifier.create(cache.saveMap("pparker", demoMap))
                 .expectSubscription()
@@ -82,7 +82,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache, timeout(1000).times(0)).saveMap("pparker", demoMap);
+        verify(centralizedCache, timeout(2000).times(0)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -102,7 +102,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDroppedElements();
 
         verify(localCache).saveMap("pparker", demoMap);
-        verify(distributedCache, times(0)).saveMap("pparker", demoMap);
+        verify(centralizedCache, timeout(1000).times(0)).saveMap("pparker", demoMap);
     }
 
 
@@ -112,8 +112,8 @@ class DoubleTierMapCacheUseCaseTest {
     void testSaveProp() {
         when(localCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(distributedCache.existsMap(anyString(), anyString())).thenReturn(Mono.just(false));
-        when(distributedCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
+        when(centralizedCache.existsMap(anyString(), anyString())).thenReturn(Mono.just(false));
+        when(centralizedCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
 
         StepVerifier.create(cache.saveMap("pparker", "city", "NY"))
                 .expectSubscription()
@@ -124,7 +124,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDroppedElements();
 
         verify(localCache).saveMap("pparker", "city", "NY");
-        verify(distributedCache, timeout(1000)).saveMap("pparker", "city", "NY");
+        verify(centralizedCache, timeout(1000)).saveMap("pparker", "city", "NY");
     }
 
 
@@ -143,7 +143,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(distributedCache, times(0)).getMap("pparker");
+        verify(centralizedCache, times(0)).getMap("pparker");
     }
 
     @SneakyThrows
@@ -159,7 +159,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(distributedCache, times(0)).keySet();
+        verify(centralizedCache, times(0)).keySet();
     }
 
     @SneakyThrows
@@ -177,7 +177,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(distributedCache, times(0)).getMap("pparker");
+        verify(centralizedCache, times(0)).getMap("pparker");
     }
 
     @SneakyThrows
@@ -187,7 +187,7 @@ class DoubleTierMapCacheUseCaseTest {
 
         when(localCache.getMap(anyString(), anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(distributedCache.getMap(anyString(), anyString())).thenReturn(Mono.just("NY"));
+        when(centralizedCache.getMap(anyString(), anyString())).thenReturn(Mono.just("NY"));
         when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
         when(localCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
 
@@ -199,18 +199,18 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(distributedCache).getMap("pparker", "city");
+        verify(centralizedCache).getMap("pparker", "city");
         verify(localCache).saveMap("pparker", "city", "NY");
     }
 
     @SneakyThrows
     @Test
-    @DisplayName("Miss map field from local cache and miss from distributed")
+    @DisplayName("Miss map field from local cache and miss from centralized")
     void testGetField3() {
 
         when(localCache.getMap(anyString(), anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(distributedCache.getMap(anyString(), anyString())).thenReturn(Mono.empty());
+        when(centralizedCache.getMap(anyString(), anyString())).thenReturn(Mono.empty());
 
         StepVerifier.create(cache.getMap("pparker", "city"))
                 .expectSubscription()
@@ -219,19 +219,19 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(distributedCache).getMap("pparker", "city");
+        verify(centralizedCache).getMap("pparker", "city");
         verify(localCache, times(0)).saveMap("pparker", "city", "NY");
     }
 
     @SneakyThrows
     @Test
-    @DisplayName("Miss map from local cache, fetch from distributed, sync local")
+    @DisplayName("Miss map from local cache, fetch from centralized, sync local")
     void testGet2() {
 
         when(localCache.getMap(anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
-        when(distributedCache.getMap(anyString())).thenReturn(Mono.just(demoMap));
+        when(centralizedCache.getMap(anyString())).thenReturn(Mono.just(demoMap));
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
 
         StepVerifier.create(cache.getMap("pparker"))
@@ -242,19 +242,19 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(distributedCache).getMap("pparker");
+        verify(centralizedCache).getMap("pparker");
         verify(localCache).saveMap(eq("pparker"), any(Map.class));
     }
 
     @SneakyThrows
     @Test
-    @DisplayName("Miss map from local cache, fetch from distributed, dont sync local")
+    @DisplayName("Miss map from local cache, fetch from centralized, dont sync local")
     void testGet3() {
 
         when(localCache.getMap(anyString())).thenReturn(Mono.empty());
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(false);
-        when(distributedCache.getMap(anyString())).thenReturn(Mono.just(demoMap));
+        when(centralizedCache.getMap(anyString())).thenReturn(Mono.just(demoMap));
 
         StepVerifier.create(cache.getMap("pparker"))
                 .expectSubscription()
@@ -264,7 +264,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(distributedCache).getMap("pparker");
+        verify(centralizedCache).getMap("pparker");
         verify(localCache, times(0)).saveMap(eq("pparker"), any(Map.class));
     }
 

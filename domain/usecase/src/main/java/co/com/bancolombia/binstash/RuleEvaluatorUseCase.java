@@ -16,8 +16,8 @@ public class RuleEvaluatorUseCase {
     public RuleEvaluatorUseCase(List<SyncRule> syncRules) {
         this.syncRules = new ArrayList<>();
         if (syncRules == null || syncRules.isEmpty()) {
-            // Add a default route. Push local cache key-values to distributed cache (upstream = true)
-            // and pull distributed cache key-values from distributed cache (downstream = true)
+            // Add a default route. Push local cache key-values to centralized cache (upstream = true)
+            // and pull key-values from centralized cache (downstream = true)
             // when affected key is ANY string.
             this.syncRules.add(DEFAULT_PERMISSIVE_SYNC_RULE);
         } else {

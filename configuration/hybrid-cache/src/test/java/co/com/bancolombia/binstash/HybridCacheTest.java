@@ -19,28 +19,28 @@ class HybridCacheTest {
     private ObjectCache<Employee> memObjectStash;
 
     @Mock
-    private ObjectCache<Employee> distObjectSash;
+    private ObjectCache<Employee> centralizedObjectSash;
 
     @Mock
     private MapCache localMapStash;
 
     @Mock
-    private MapCache distributedMapStash;
+    private MapCache centralizedMapStash;
 
     @Test
     void createObjectCache() {
         assertNotNull(new HybridCacheFactory<>(memObjectStash,
-                distObjectSash, localMapStash, distributedMapStash).newObjectCache());
+                centralizedObjectSash, localMapStash, centralizedMapStash).newObjectCache());
     }
 
     @Test
     void createMapCache() {
         assertNotNull(new HybridCacheFactory<>(memObjectStash,
-                distObjectSash, localMapStash, distributedMapStash).newMapCache());
+                centralizedObjectSash, localMapStash, centralizedMapStash).newMapCache());
 
         SyncRule r1 = (keyExpr, syncType) -> true;
         assertNotNull(new HybridCacheFactory<>(memObjectStash,
-                distObjectSash, localMapStash, distributedMapStash).newMapCache(
+                centralizedObjectSash, localMapStash, centralizedMapStash).newMapCache(
                 Collections.singletonList(r1)
         ));
     }

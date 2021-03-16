@@ -11,14 +11,14 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
 
     private static final Scheduler elastic_scheduler = Schedulers.boundedElastic();
     private final ObjectCache<T> localCache;
-    private final ObjectCache<T> distributedCache;
+    private final ObjectCache<T> centralizedCache;
     private final RuleEvaluatorUseCase ruleEvaluatorUseCase;
 
     public DoubleTierObjectCacheUseCase(ObjectCache<T> localCache,
-                                        ObjectCache<T> distributedCache,
+                                        ObjectCache<T> centralizedCache,
                                         RuleEvaluatorUseCase ruleEvaluatorUseCase) {
         this.localCache = localCache;
-        this.distributedCache = distributedCache;
+        this.centralizedCache = centralizedCache;
         this.ruleEvaluatorUseCase = ruleEvaluatorUseCase;
     }
 
@@ -29,9 +29,9 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                         .subscribeOn(elastic_scheduler)
                         .filter(shouldSync -> shouldSync)
-                        .flatMap(shouldSync -> distributedCache.exists(key))
+                        .flatMap(shouldSync -> centralizedCache.exists(key))
                         .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                        .flatMap(exists -> distributedCache.save(key, value))
+                        .flatMap(exists -> centralizedCache.save(key, value))
                         .subscribe()
             );
     }
@@ -42,7 +42,7 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
             .switchIfEmpty(Mono.defer(() ->
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
-                    .flatMap(shouldFetch -> this.searchDistributed(key, clazz))
+                    .flatMap(shouldFetch -> this.searchCentralized(key, clazz))
             ));
     }
 
@@ -52,7 +52,7 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
             .switchIfEmpty(Mono.defer(() ->
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
-                    .flatMap(shouldFetch -> this.searchDistributed(key, ref))
+                    .flatMap(shouldFetch -> this.searchCentralized(key, ref))
             ));
     }
 
@@ -73,19 +73,19 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .subscribeOn(elastic_scheduler)
                     .filter(shouldSyncUpstream -> shouldSyncUpstream)
-                    .flatMap(shouldSync -> distributedCache.evict(key))
+                    .flatMap(shouldSync -> centralizedCache.evict(key))
                     .subscribe()
             );
     }
 
     @Override
     public Mono<Boolean> evictAll() {
-        // TODO: should sync evictAll event to distributed cache?
+        // TODO: should sync evictAll event to centralized cache?
         return localCache.evictAll();
     }
 
-    private Mono<T> searchDistributed(String key, Class<T> clazz) {
-        return this.distributedCache.get(key, clazz)
+    private Mono<T> searchCentralized(String key, Class<T> clazz) {
+        return this.centralizedCache.get(key, clazz)
                 .doOnNext(next ->
                         Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
                                 .filter(shouldSyncFromDist -> shouldSyncFromDist)
@@ -94,8 +94,8 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
                 );
     }
 
-    private Mono<T> searchDistributed(String key, Object ref) {
-        return this.distributedCache.get(key, ref)
+    private Mono<T> searchCentralized(String key, Object ref) {
+        return this.centralizedCache.get(key, ref)
                 .doOnNext(next ->
                         Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
                                 .filter(shouldSyncFromDist -> shouldSyncFromDist)

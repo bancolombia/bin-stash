@@ -39,8 +39,8 @@ public class CentralizedCacheConfig<V extends Object> {
     }
 
     @Bean
-    public CentralizedCacheFactory<V> newFactory(@Qualifier("centralMemStashBean") Stash distributedStash,
+    public CentralizedCacheFactory<V> newFactory(@Qualifier("centralMemStashBean") Stash centralizedStash,
                                                  ObjectMapper objectMapper) {
-        return new CentralizedCacheFactory<>(distributedStash, objectMapper);
+        return new CentralizedCacheFactory<>(centralizedStash, objectMapper);
     }
 }
