@@ -33,39 +33,25 @@ subprojects {
     apply plugin: 'signing'
 
     ext {
-        pomConfig = {
-            licenses {
-                license {
-                    name "MIT License"
-                    url "https://opensource.org/licenses/mit-license.php"
-                    distribution "repo"
-                }
-            }
-            developers {
-                developer {
-                    id "gabheadz"
-                    name "Gabriel Martinez"
-                    email "gabrieljm@gmail.com"
-                }
-            }
-
-            scm {
-                url "git@github.com:bancolombia/bin-stash.git"
-            }
-        }
         groupId = 'com.github.bancolombia'
     }
 
     group groupId
 
-    task sourcesJar(type: Jar) {
-        classifier "sources"
-        from sourceSets.main.allJava
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
 
+    javadoc.failOnError = false
     task javadocJar(type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
         from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
     }
 
     repositories {
@@ -121,15 +107,39 @@ subprojects {
         enabled = false
     }
 
-//    if (project.hasProperty('signing.keyId')) {
-//        signing {
-//            sign publishing.publications.mavenJava
-//        }
-//    }
+    if (project.hasProperty('signing.keyId')) {
+        signing {
+            sign publishing.publications.mavenJava
+        }
+    }
 
     publishing {
         publications {
             mavenJava(MavenPublication) {
+
+                pom {
+                    name = 'Bin-Stash'
+                    description = 'Caching data in memory and/or a centralized cache to build a two tier stage cache.'
+                    url = 'https://github.com/bancolombia/bin-stash'
+                    licenses {
+                        license {
+                            name = "MIT License"
+                            url = "https://opensource.org/licenses/mit-license.php"
+                            distribution = "repo"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = "gabheadz"
+                            name = "Gabriel Martinez"
+                            email = "gabrieljm@gmail.com"
+                        }
+                    }
+                    scm {
+                        url ="git@github.com:bancolombia/bin-stash.git"
+                    }
+                }
+
                 from components.java
 
                 artifact sourcesJar
@@ -138,14 +148,6 @@ subprojects {
                 groupId = groupId
                 artifactId = artifactId
                 version = project.property('version')
-
-                pom.withXml {
-                    def root = asNode()
-                    root.appendNode('description', artifactDescription)
-                    root.appendNode('name', artifactId)
-                    root.appendNode('url', 'https://github.com/bancolombia/bin-stash')
-                    root.children().last() + pomConfig
-                }
             }
         }
         repositories {
@@ -160,15 +162,7 @@ subprojects {
         }
     }
 
-    tasks.withType(GenerateModuleMetadata) {
-        enabled = false
-    }
 
-    if (project.hasProperty('signing.keyId')) {
-        signing {
-            sign publishing.publications.mavenJava
-        }
-    }
 }
 
 task generateMergedReport(type: JacocoReport) {
