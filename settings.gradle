@@ -1,16 +1,16 @@
 rootProject.name = 'bin-stash'
 
-include ":model"
-project(':model').projectDir = file('./domain/model')
+include ":bin-stash-model"
+project(':bin-stash-model').projectDir = file('./domain/model')
 
-include ":usecase"
-project(':usecase').projectDir = file('./domain/usecase')
+include ":bin-stash-usecase"
+project(':bin-stash-usecase').projectDir = file('./domain/usecase')
 
-include ":mem-stash"
-project(':mem-stash').projectDir = file('./infrastructure/driven-adapters/mem-stash')
+include ":bin-stash-memory"
+project(':bin-stash-memory').projectDir = file('./infrastructure/driven-adapters/mem-stash')
 
-include ":redis-stash"
-project(':redis-stash').projectDir = file('./infrastructure/driven-adapters/redis-stash')
+include ":bin-stash-redis"
+project(':bin-stash-redis').projectDir = file('./infrastructure/driven-adapters/redis-stash')
 
 include ":bin-stash-local"
 project(':bin-stash-local').projectDir = file('./configuration/local-cache')
@@ -21,11 +21,11 @@ project(':bin-stash-centralized').projectDir = file('./configuration/centralized
 include ":bin-stash-hybrid"
 project(':bin-stash-hybrid').projectDir = file('./configuration/hybrid-cache')
 
-include ":example-local"
-project(':example-local').projectDir = file('./examples/local')
+include ":bin-stash-example-local"
+project(':bin-stash-example-local').projectDir = file('./examples/local')
 
-include ":example-centralized"
-project(':example-centralized').projectDir = file('./examples/centralized')
+include ":bin-stash-example-centralized"
+project(':bin-stash-example-centralized').projectDir = file('./examples/centralized')
 
-include ":example-hybrid"
-project(':example-hybrid').projectDir = file('./examples/hybrid')
+include ":bin-stash-example-hybrid"
+project(':bin-stash-example-hybrid').projectDir = file('./examples/hybrid')

@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':model')
+    compile project(':bin-stash-model')
     compile 'org.apache.commons:commons-lang3:3.11'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
     testImplementation 'com.google.re2j:re2j:1.5'
