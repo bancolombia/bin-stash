@@ -21,6 +21,7 @@ allprojects {
             property "sonar.java-coveragePlugin", "jacoco"
             property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/generateMergedReport/generateMergedReport.xml"
             property "sonar.exclusions", ".github/**"
+            property 'sonar.coverage.exclusions', 'examples/**/*'
         }
     }
 }
@@ -28,31 +29,13 @@ subprojects {
 
     apply plugin: "java-library"
     apply plugin: "maven"
-    apply plugin: "maven-publish"
     apply plugin: "io.spring.dependency-management"
-    apply plugin: "signing"
 
     ext {
         groupId = 'com.github.bancolombia'
     }
 
     group groupId
-
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    javadoc.failOnError = false
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
-    }
-
-    artifacts {
-        archives sourcesJar
-        archives javadocJar
-    }
 
     repositories {
         mavenCentral()
@@ -103,62 +86,83 @@ subprojects {
         ]
     }
 
-    tasks.withType(GenerateModuleMetadata) {
-        enabled = false
-    }
+    if (toPublish.split(',').contains(it.name)) {
+        apply plugin: "maven-publish"
+        apply plugin: "signing"
 
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
+        task sourcesJar(type: Jar, dependsOn: classes) {
+            classifier = 'sources'
+            from sourceSets.main.allSource
+        }
 
-                pom {
-                    name = 'Bin-Stash'
-                    description = 'Caching data in memory and/or a centralized cache to build a two tier stage cache.'
-                    url = 'https://github.com/bancolombia/bin-stash'
-                    licenses {
-                        license {
-                            name = "MIT License"
-                            url = "https://opensource.org/licenses/mit-license.php"
-                            distribution = "repo"
+        javadoc.failOnError = false
+        task javadocJar(type: Jar, dependsOn: javadoc) {
+            classifier = 'javadoc'
+            from javadoc.destinationDir
+        }
+
+        artifacts {
+            archives sourcesJar
+            archives javadocJar
+        }
+
+        tasks.withType(GenerateModuleMetadata) {
+            enabled = false
+        }
+
+        publishing {
+            publications {
+                mavenJava(MavenPublication) {
+
+                    pom {
+                        name = 'Bin-Stash'
+                        description = 'Caching data in memory and/or a centralized cache to build a two tier stage cache.'
+                        url = 'https://github.com/bancolombia/bin-stash'
+                        licenses {
+                            license {
+                                name = "MIT License"
+                                url = "https://opensource.org/licenses/mit-license.php"
+                                distribution = "repo"
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = "gabheadz"
+                                name = "Gabriel Martinez"
+                                email = "gabrieljm@gmail.com"
+                            }
+                        }
+                        scm {
+                            url ="git@github.com:bancolombia/bin-stash.git"
                         }
                     }
-                    developers {
-                        developer {
-                            id = "gabheadz"
-                            name = "Gabriel Martinez"
-                            email = "gabrieljm@gmail.com"
-                        }
-                    }
-                    scm {
-                        url ="git@github.com:bancolombia/bin-stash.git"
-                    }
+
+                    from components.java
+
+                    artifact sourcesJar
+                    artifact javadocJar
+
+                    groupId = groupId
+                    artifactId = artifactId
+                    version = project.property('version')
                 }
-
-                from components.java
-
-                artifact sourcesJar
-                artifact javadocJar
-
-                groupId = groupId
-                artifactId = artifactId
-                version = project.property('version')
             }
-        }
-        repositories {
-            maven {
-                name = "OSSRH"
-                url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
+            repositories {
+                maven {
+                    name = "OSSRH"
+                    url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                    credentials {
+                        username = System.getenv("MAVEN_USERNAME")
+                        password = System.getenv("MAVEN_PASSWORD")
+                    }
                 }
             }
         }
-    }
 
-    if (project.hasProperty('signing.keyId')) {
-        signing {
-            sign publishing.publications.mavenJava
+        if (project.hasProperty('signing.keyId')) {
+            signing {
+                sign publishing.publications.mavenJava
+            }
         }
     }
 

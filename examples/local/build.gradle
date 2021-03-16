@@ -10,11 +10,7 @@ jacocoTestCoverageVerification.onlyIf { !project.hasProperty('examplesCoverage')
 jacocoTestReport.onlyIf { !project.hasProperty('examplesCoverage') }
 
 project.afterEvaluate {
-    project.tasks.publishToMavenLocal.enabled(false)
-    project.tasks.publish.enabled(false)
     project.tasks.install.enabled(false)
-    project.tasks.publishAllPublicationsToOSSRHRepository.enabled(false)
-    project.tasks.publishMavenJavaPublicationToMavenLocal.enabled(false)
 }
 
 sonarqube {
