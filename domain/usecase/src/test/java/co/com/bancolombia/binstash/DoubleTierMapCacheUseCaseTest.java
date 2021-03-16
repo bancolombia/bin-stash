@@ -72,8 +72,8 @@ class DoubleTierMapCacheUseCaseTest {
     void testSave2() {
 
         when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
-        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(true));
+//        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+//        when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(true));
 
         StepVerifier.create(cache.saveMap("pparker", demoMap))
                 .expectSubscription()
@@ -82,7 +82,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(localCache).saveMap("pparker", demoMap);
-        verify(centralizedCache, timeout(2000).times(0)).saveMap("pparker", demoMap);
+//        verify(centralizedCache, timeout(2000).times(0)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
