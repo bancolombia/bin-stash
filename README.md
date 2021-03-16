@@ -17,32 +17,26 @@ Library for caching data:
 
 For local cache only
 
-```
-<dependency>
-  <groupId>co.com.bancolombia</groupId>
-  <artifactId>bin-stash-local</artifactId>
-  <version>1.0.0</version>
-</dependency>
+```gradle
+dependencies {
+    implementation 'com.github.bancolombia:bin-stash-local:1.0.0'
+}
 ```
 
 For a centralized (redis) cache only
 
-```
-<dependency>
-  <groupId>co.com.bancolombia</groupId>
-  <artifactId>bin-stash-centralized</artifactId>
-  <version>1.0.0</version>
-</dependency>
+```gradle
+dependencies {
+    implementation 'com.github.bancolombia:bin-stash-centralized:1.0.0'
+}
 ```
 
 For an hybrid (local and centralized) cache
 
-```
-<dependency>
-  <groupId>co.com.bancolombia</groupId>
-  <artifactId>bin-stash-hybrid</artifactId>
-  <version>1.0.0</version>
-</dependency>
+```gradle
+dependencies {
+    implementation 'com.github.bancolombia:bin-stash-hybrid:1.0.0'
+}
 ```
 
 2.	Configuration
