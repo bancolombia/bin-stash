@@ -121,11 +121,11 @@ subprojects {
         enabled = false
     }
 
-    if (project.hasProperty('signing.keyId')) {
-        signing {
-            sign publishing.publications.mavenJava
-        }
-    }
+//    if (project.hasProperty('signing.keyId')) {
+//        signing {
+//            sign publishing.publications.mavenJava
+//        }
+//    }
 
     publishing {
         publications {
