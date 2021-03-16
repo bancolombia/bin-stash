@@ -32,14 +32,16 @@ jobs:
       - name: copy the reportTest to codeCoverage
         run: cp build/reports/jacoco/generateMergedReport/generateMergedReport.xml jacoco.xml || echo "Code coverage failed"
       - name: Push codeCoverage to Codecov
+        if: endsWith(github.REF, '/master') == true
         run: bash <(curl -s https://codecov.io/bash)
       - name: Run sonarqube
-        if: github.event.pull_request.head.repo.fork == false
+        if: endsWith(github.REF, '/master') == true
         run: ./gradlew sonarqube --stacktrace
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     needs: build
     steps:

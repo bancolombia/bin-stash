@@ -60,9 +60,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(localCache).saveMap("pparker", demoMap);
         verify(distributedCache).saveMap("pparker", demoMap);
@@ -81,8 +81,10 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verify();
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
+
         verify(localCache).saveMap("pparker", demoMap);
         verify(distributedCache, times(0)).saveMap("pparker", demoMap);
     }
@@ -99,9 +101,10 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verify();
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
-        Thread.sleep(300);
         verify(localCache).saveMap("pparker", demoMap);
         verify(distributedCache, times(0)).saveMap("pparker", demoMap);
     }
@@ -120,9 +123,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext("NY")
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(localCache).saveMap("pparker", "city", "NY");
         verify(distributedCache).saveMap("pparker", "city", "NY");
@@ -140,9 +143,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(distributedCache, times(0)).getMap("pparker");
     }
@@ -174,9 +177,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext("NY")
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(distributedCache, times(0)).getMap("pparker");
     }
@@ -196,9 +199,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext("NY")
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(distributedCache).getMap("pparker", "city");
         verify(localCache).saveMap("pparker", "city", "NY");
@@ -216,9 +219,9 @@ class DoubleTierMapCacheUseCaseTest {
         StepVerifier.create(cache.getMap("pparker", "city"))
                 .expectSubscription()
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(distributedCache).getMap("pparker", "city");
         verify(localCache, times(0)).saveMap("pparker", "city", "NY");
@@ -239,9 +242,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(distributedCache).getMap("pparker");
         verify(localCache).saveMap(eq("pparker"), any(Map.class));
@@ -261,9 +264,9 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(demoMap)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(distributedCache).getMap("pparker");
         verify(localCache, times(0)).saveMap(eq("pparker"), any(Map.class));

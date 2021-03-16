@@ -15,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -83,9 +82,9 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(p)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(memStash).save("pparker", p);
         verify(redisStash).exists("pparker");
@@ -140,9 +139,9 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(p)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(memStash).get(eq("pparker"), any());
         verify(memStash, times(0)).save("pparker", p);
@@ -166,9 +165,9 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(p)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(memStash).get(eq("pparker"), any());
         verify(memStash).save("pparker", p);
@@ -198,9 +197,9 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(List.of(p))
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(memStash2).get(eq("pparker"), any(TypeReference.class));
         verify(memStash2).save("pparker", List.of(p));
@@ -249,7 +248,9 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(true)
                 .expectComplete()
-                .verify(Duration.ofMillis(300));
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(memStash).evict("pparker");
         verify(redisStash, times(0)).evict("pparker");
@@ -267,9 +268,9 @@ class DoubleTierObjectCacheUseCaseTest {
                 .expectSubscription()
                 .expectNext(true)
                 .expectComplete()
-                .verify();
-
-        Thread.sleep(300);
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
 
         verify(memStash).evict("pparker");
         verify(redisStash).evict("pparker");
