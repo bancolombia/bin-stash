@@ -26,11 +26,11 @@ allprojects {
 }
 subprojects {
 
-    apply plugin: 'java-library'
+    apply plugin: "java-library"
     apply plugin: "maven"
     apply plugin: "maven-publish"
     apply plugin: "io.spring.dependency-management"
-    apply plugin: 'signing'
+    apply plugin: "signing"
 
     ext {
         groupId = 'com.github.bancolombia'
@@ -107,12 +107,6 @@ subprojects {
         enabled = false
     }
 
-    if (project.hasProperty('signing.keyId')) {
-        signing {
-            sign publishing.publications.mavenJava
-        }
-    }
-
     publishing {
         publications {
             mavenJava(MavenPublication) {
@@ -162,6 +156,11 @@ subprojects {
         }
     }
 
+    if (project.hasProperty('signing.keyId')) {
+        signing {
+            sign publishing.publications.mavenJava
+        }
+    }
 
 }
 
