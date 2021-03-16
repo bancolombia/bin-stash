@@ -35,8 +35,8 @@ public class HybridExampleConfiguration {
 
     @Bean
     public List<SyncRule> cacheSyncRules() {
-        // Just one rule, in this demo. Push local cache key-values to distributed cache (upstream = true)
-        // and pull distributed cache key-values from distributed cache (downstream = true)
+        // Just one rule, in this demo. Push local cache key-values to centralized cache (upstream = true)
+        // and pull  key-values from centralized cache (downstream = true)
         // when affected key is ANY string and syncType es either UPSTREAM / DOWNSTREAM
         SyncRule simpleSyncRule = (keyArg, syncType) -> true;
         return Collections.singletonList(simpleSyncRule);

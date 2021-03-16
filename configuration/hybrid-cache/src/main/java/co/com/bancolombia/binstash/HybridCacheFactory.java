@@ -11,9 +11,9 @@ import java.util.List;
 public class HybridCacheFactory<V extends Object> {
 
     private final ObjectCache<V> localCache;
-    private final ObjectCache<V> distributedCache;
+    private final ObjectCache<V> centralizedCache;
     private final MapCache localMapCache;
-    private final MapCache distributedMapCache;
+    private final MapCache centralizedMapCache;
 
     public ObjectCache<V> newObjectCache() {
         return this.newObjectCache(null);
@@ -22,7 +22,7 @@ public class HybridCacheFactory<V extends Object> {
     public ObjectCache<V> newObjectCache(List<SyncRule> syncRules) {
         final RuleEvaluatorUseCase ruleEvaluatorUseCase = new RuleEvaluatorUseCase(syncRules);
         return new DoubleTierObjectCacheUseCase<>(this.localCache,
-                this.distributedCache, ruleEvaluatorUseCase);
+                this.centralizedCache, ruleEvaluatorUseCase);
     }
 
     public MapCache newMapCache() {
@@ -32,6 +32,6 @@ public class HybridCacheFactory<V extends Object> {
     public MapCache newMapCache(List<SyncRule> syncRules) {
         final RuleEvaluatorUseCase ruleEvaluatorUseCase = new RuleEvaluatorUseCase(syncRules);
         return new DoubleTierMapCacheUseCase(this.localMapCache,
-                this.distributedMapCache, ruleEvaluatorUseCase);
+                this.centralizedMapCache, ruleEvaluatorUseCase);
     }
 }

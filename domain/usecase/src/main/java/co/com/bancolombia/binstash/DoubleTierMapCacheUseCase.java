@@ -12,14 +12,14 @@ public class DoubleTierMapCacheUseCase implements MapCache {
 
     private static final Scheduler elastic_scheduler = Schedulers.boundedElastic();
     private final MapCache localCache;
-    private final MapCache distributedCache;
+    private final MapCache centralizedCache;
     private final RuleEvaluatorUseCase ruleEvaluatorUseCase;
 
     public DoubleTierMapCacheUseCase(MapCache localCache,
-                                     MapCache distributedCache,
+                                     MapCache centralizedCache,
                                      RuleEvaluatorUseCase ruleEvaluatorUseCase) {
         this.localCache = localCache;
-        this.distributedCache = distributedCache;
+        this.centralizedCache = centralizedCache;
         this.ruleEvaluatorUseCase = ruleEvaluatorUseCase;
     }
 
@@ -30,9 +30,9 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                     Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                             .subscribeOn(elastic_scheduler)
                             .filter(shouldSync -> shouldSync)
-                            .flatMap(shouldSync -> distributedCache.existsMap(key))
+                            .flatMap(shouldSync -> centralizedCache.existsMap(key))
                             .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                            .flatMap(exists -> distributedCache.saveMap(key, value))
+                            .flatMap(exists -> centralizedCache.saveMap(key, value))
                             .subscribe()
                 );
     }
@@ -44,9 +44,9 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                         Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                                 .subscribeOn(elastic_scheduler)
                                 .filter(shouldSync -> shouldSync)
-                                .flatMap(shouldSync -> distributedCache.existsMap(key, field))
+                                .flatMap(shouldSync -> centralizedCache.existsMap(key, field))
                                 .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                                .flatMap(exists -> distributedCache.saveMap(key, field, value))
+                                .flatMap(exists -> centralizedCache.saveMap(key, field, value))
                                 .subscribe()
                 );
     }
@@ -57,7 +57,7 @@ public class DoubleTierMapCacheUseCase implements MapCache {
             .switchIfEmpty(Mono.defer(() ->
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
-                    .flatMap(shouldFetch -> this.distributedCache.getMap(key, field)
+                    .flatMap(shouldFetch -> this.centralizedCache.getMap(key, field)
                         .doOnNext(next ->
                             Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
                                 .filter(shouldSyncFromDist -> shouldSyncFromDist)
@@ -73,7 +73,7 @@ public class DoubleTierMapCacheUseCase implements MapCache {
             .switchIfEmpty(Mono.defer(() ->
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
-                    .flatMap(shouldFetch -> this.distributedCache.getMap(key)
+                    .flatMap(shouldFetch -> this.centralizedCache.getMap(key)
                         .doOnNext(next ->
                             Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
                                 .filter(shouldSyncFromDist -> shouldSyncFromDist)
