@@ -16,6 +16,7 @@ on:
 
 jobs:
   build:
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -52,6 +53,8 @@ jobs:
           java-version: 11
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew build --no-daemon --continue
       - name: Setup Javadoc
         run: ./gradlew install
       - name: Prepare gpg key
