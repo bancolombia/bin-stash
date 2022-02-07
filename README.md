@@ -5,6 +5,7 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bancolombia_bin-stash&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=bancolombia_bin-stash)
 [![codecov](https://codecov.io/gh/bancolombia/bin-stash/branch/master/graph/badge.svg)](https://codecov.io/gh/bancolombia/bin-stash)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/bancolombia/bin-stash/blob/master/LICENSE)
+[![Scorecards supply-chain security](https://github.com/bancolombia/bin-stash/actions/workflows/scorecards-analysis.yml/badge.svg)](https://github.com/bancolombia/bin-stash/actions/workflows/scorecards-analysis.yml)
 
 Library for caching data:
 
