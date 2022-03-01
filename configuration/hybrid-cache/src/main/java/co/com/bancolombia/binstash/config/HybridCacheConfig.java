@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class HybridCacheConfig<V extends Object> {
 
-    @Value("${stash.memory.expireTime:60}")
+    @Value("${stash.memory.expireTime:-1}")
     private int localExpireTime;
 
     @Value("${stash.memory.maxSize:1000}")
@@ -36,7 +36,7 @@ public class HybridCacheConfig<V extends Object> {
     @Value("${stash.redis.password:}")
     private String password;
 
-    @Value("${stash.redis.expireTime:60}")
+    @Value("${stash.redis.expireTime:-1}")
     private int redisExpireTime;
 
     @Bean(name = "hybridMemStashBean")

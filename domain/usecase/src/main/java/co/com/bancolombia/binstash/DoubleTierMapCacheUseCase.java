@@ -25,28 +25,38 @@ public class DoubleTierMapCacheUseCase implements MapCache {
 
     @Override
     public Mono<Map<String, String>> saveMap(String key, Map<String, String> value) {
-        return localCache.saveMap(key, value)
+        return saveMap(key, value, -1);
+    }
+
+    @Override
+    public Mono<Map<String, String>> saveMap(String key, Map<String, String> value, int ttl) {
+        return localCache.saveMap(key, value, ttl)
                 .doAfterTerminate(() ->
-                    Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
-                            .subscribeOn(elastic_scheduler)
-                            .filter(shouldSync -> shouldSync)
-                            .flatMap(shouldSync -> centralizedCache.existsMap(key))
-                            .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                            .flatMap(exists -> centralizedCache.saveMap(key, value))
-                            .subscribe()
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
+                                .subscribeOn(elastic_scheduler)
+                                .filter(shouldSync -> shouldSync)
+                                .flatMap(shouldSync -> centralizedCache.existsMap(key))
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(exists -> centralizedCache.saveMap(key, value, ttl))
+                                .subscribe()
                 );
     }
 
     @Override
     public Mono<String> saveMap(String key, String field, String value) {
-        return localCache.saveMap(key, field, value)
+        return saveMap(key, field, value, -1);
+    }
+
+    @Override
+    public Mono<String> saveMap(String key, String field, String value, int ttl) {
+        return localCache.saveMap(key, field, value, ttl)
                 .doAfterTerminate(() ->
                         Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                                 .subscribeOn(elastic_scheduler)
                                 .filter(shouldSync -> shouldSync)
                                 .flatMap(shouldSync -> centralizedCache.existsMap(key, field))
                                 .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                                .flatMap(exists -> centralizedCache.saveMap(key, field, value))
+                                .flatMap(exists -> centralizedCache.saveMap(key, field, value, ttl))
                                 .subscribe()
                 );
     }

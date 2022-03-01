@@ -24,7 +24,7 @@ public class CentralizedCacheConfig<V extends Object> {
     @Value("${stash.redis.password:}")
     private String password;
 
-    @Value("${stash.redis.expireTime:60}")
+    @Value("${stash.redis.expireTime:-1}")
     private int redisExpireTime;
 
     @Bean(name = "centralMemStashBean")

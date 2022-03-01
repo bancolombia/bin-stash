@@ -1,8 +1,5 @@
 
 stash:
   redis:
-    expireTime: 60
     host: localhost
     port: 6379
-#    database:
-#    password:

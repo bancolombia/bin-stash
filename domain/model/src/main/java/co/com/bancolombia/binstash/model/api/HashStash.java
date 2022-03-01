@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Repo for storing Map&lt;String, String&gt; data.
+ * Repo for storing hash collections of data.
  */
 public interface HashStash {
 
@@ -19,6 +19,15 @@ public interface HashStash {
     Mono<Map<String, String>> hSave(String key, Map<String, String> value);
 
     /**
+     * Saves a Map value under key,  indicating a Time to live for the data in the cache
+     * @param key   key value to index map
+     * @param value map to store in cache
+     * @param ttl time to live in seconds
+     * @return inserted map.
+     */
+    Mono<Map<String, String>> hSave(String key, Map<String, String> value, int ttl);
+
+    /**
      * Adds/Updates fileds in map.
      *
      * @param key   key value to index map
@@ -27,6 +36,17 @@ public interface HashStash {
      * @return field value updated/added in map.
      */
     Mono<String> hSave(String key, String field, String value);
+
+    /**
+     * Adds/Updates fileds in map, possibly indicating a ttl for the key in the cache.
+     *
+     * @param key   key value to index map
+     * @param field field to update/add into map
+     * @param value value to set field to
+     * @param ttl time to live in seconds
+     * @return field value updated/added in map.
+     */
+    Mono<String> hSave(String key, String field, String value, int ttl);
 
     /**
      * Gets field value from map
@@ -44,6 +64,10 @@ public interface HashStash {
      */
     Mono<Map<String, String>> hGetAll(String key);
 
+    /**
+     * Gets a set of all keys currently stored
+     * @return Set o f keys
+     */
     Mono<Set<String>> keySet();
 
     /**

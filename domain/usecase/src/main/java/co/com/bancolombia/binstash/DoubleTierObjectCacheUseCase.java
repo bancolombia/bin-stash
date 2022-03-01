@@ -23,17 +23,31 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
     }
 
     @Override
+    public Mono<T> save(String key, T value, int ttl) {
+        return localCache.save(key, value, ttl)
+                .doAfterTerminate(() ->
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
+                                .subscribeOn(elastic_scheduler)
+                                .filter(shouldSync -> shouldSync)
+                                .flatMap(shouldSync -> centralizedCache.exists(key))
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(exists -> centralizedCache.save(key, value, ttl))
+                                .subscribe()
+                );
+    }
+
+    @Override
     public Mono<T> save(String key, T value) {
         return localCache.save(key, value)
-            .doAfterTerminate(() ->
-                Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
-                        .subscribeOn(elastic_scheduler)
-                        .filter(shouldSync -> shouldSync)
-                        .flatMap(shouldSync -> centralizedCache.exists(key))
-                        .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                        .flatMap(exists -> centralizedCache.save(key, value))
-                        .subscribe()
-            );
+                .doAfterTerminate(() ->
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
+                                .subscribeOn(elastic_scheduler)
+                                .filter(shouldSync -> shouldSync)
+                                .flatMap(shouldSync -> centralizedCache.exists(key))
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(exists -> centralizedCache.save(key, value))
+                                .subscribe()
+                );
     }
 
     @Override

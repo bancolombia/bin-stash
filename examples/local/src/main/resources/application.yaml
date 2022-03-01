@@ -1,5 +1,4 @@
 
 stash:
   memory:
-    expireTime: 10
     maxSize: 10_000

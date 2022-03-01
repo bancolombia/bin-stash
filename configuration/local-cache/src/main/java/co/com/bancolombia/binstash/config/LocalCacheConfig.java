@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LocalCacheConfig<V extends Object> {
 
-    @Value("${stash.memory.expireTime:60}")
+    @Value("${stash.memory.expireTime:-1}")
     private int expireTime;
 
     @Value("${stash.memory.maxSize:1000}")

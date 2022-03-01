@@ -21,8 +21,18 @@ public class SingleTierMapCacheUseCase implements MapCache {
     }
 
     @Override
+    public Mono<Map<String, String>> saveMap(String key, Map<String, String> value, int ttl) {
+        return stash.hSave(key, value, ttl);
+    }
+
+    @Override
     public Mono<String> saveMap(String key, String field, String value) {
         return stash.hSave(key, field, value);
+    }
+
+    @Override
+    public Mono<String> saveMap(String key, String field, String value, int ttl) {
+        return stash.hSave(key, field, value, ttl);
     }
 
     @Override

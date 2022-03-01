@@ -16,6 +16,7 @@ import java.util.Set;
 public class RedisStash implements Stash {
 
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
+    private static final int DEFAULT_PER_KEY_EXPIRATION_SECONDS = 300;
 
     private final RedisReactiveCommands<String, String> redisReactiveCommands;
     private final int expireAfter;
@@ -27,13 +28,18 @@ public class RedisStash implements Stash {
     }
 
     @Override
-    public Mono<String> save(String key, String value) {
+    public Mono<String> save(String key, String value, int ttl) {
         if (StringUtils.isAnyBlank(key, value)) {
             return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
         } else {
-            return redisReactiveCommands.set(key, value, SetArgs.Builder.ex(this.expireAfter))
+            return redisReactiveCommands.set(key, value, SetArgs.Builder.ex(computeTtl(ttl)))
                     .map(r -> value);
         }
+    }
+
+    @Override
+    public Mono<String> save(String key, String value) {
+        return save(key, value, this.expireAfter); // with default expire ttl
     }
 
     @Override
@@ -76,20 +82,32 @@ public class RedisStash implements Stash {
 
     @Override
     public Mono<Map<String, String>> hSave(String key, Map<String, String> value) {
+        return hSave(key, value, DEFAULT_PER_KEY_EXPIRATION_SECONDS);
+    }
+
+    @Override
+    public Mono<Map<String, String>> hSave(String key, Map<String, String> value, int ttl) {
         if (StringUtils.isBlank(key) || value == null) {
             return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
         } else {
             return redisReactiveCommands.hmset(key, value)
+                    .zipWith(redisReactiveCommands.expire(key, computeTtl(ttl)))
                     .map(r -> value);
         }
     }
 
     @Override
     public Mono<String> hSave(String key, String field, String value) {
+        return hSave(key, field, value, DEFAULT_PER_KEY_EXPIRATION_SECONDS);
+    }
+
+    @Override
+    public Mono<String> hSave(String key, String field, String value, int ttl) {
         if (StringUtils.isAnyBlank(key, field, value)) {
             return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
         } else {
             return redisReactiveCommands.hset(key, field, value)
+                    .zipWith(redisReactiveCommands.expire(key, computeTtl(ttl)))
                     .map(r -> value);
         }
     }
@@ -135,12 +153,26 @@ public class RedisStash implements Stash {
         }
     }
 
+    private int computeTtl(int cadidateTtl) {
+        int computed;
+        if (cadidateTtl > 0) {
+            computed = cadidateTtl;
+        }
+        else if (cadidateTtl < 0 && this.expireAfter > 0) {
+            computed = this.expireAfter;
+        }
+        else {
+            computed = DEFAULT_PER_KEY_EXPIRATION_SECONDS;
+        }
+        return computed;
+    }
+
     public static final class Builder {
         private String host;
         private int port = 6379;
         private int database = 0;
         private String password;
-        private int expireAfter = 300; // seconds
+        private int expireAfter = -1;
 
         public Builder expireAfter(int seconds) {
             this.expireAfter = seconds;

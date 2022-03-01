@@ -51,10 +51,10 @@ class DoubleTierMapCacheUseCaseTest {
     @DisplayName("save local map cache, sync upstream")
     void testSave() {
 
-        when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
+        when(localCache.saveMap(anyString(), any(Map.class), anyInt())).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(false));
-        when(centralizedCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
+        when(centralizedCache.saveMap(anyString(), any(Map.class), anyInt())).thenReturn(Mono.just(demoMap));
 
         StepVerifier.create(cache.saveMap("pparker", demoMap))
                 .expectSubscription()
@@ -62,8 +62,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(localCache).saveMap("pparker", demoMap);
-        verify(centralizedCache, timeout(1000)).saveMap("pparker", demoMap);
+        verify(localCache).saveMap("pparker", demoMap, -1);
+        verify(centralizedCache, timeout(1000)).saveMap("pparker", demoMap, -1);
     }
 
     @SneakyThrows
@@ -71,7 +71,7 @@ class DoubleTierMapCacheUseCaseTest {
     @DisplayName("save local map cache, try sync upstream, key exists")
     void testSave2() {
 
-        when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
+        when(localCache.saveMap(anyString(), any(Map.class), anyInt())).thenReturn(Mono.just(demoMap));
 //        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
 //        when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(true));
 
@@ -81,7 +81,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(localCache).saveMap("pparker", demoMap);
+        verify(localCache).saveMap("pparker", demoMap, -1);
 //        verify(centralizedCache, timeout(2000).times(0)).saveMap("pparker", demoMap);
     }
 
@@ -90,7 +90,7 @@ class DoubleTierMapCacheUseCaseTest {
     @DisplayName("save local map cache, dont sync upstream")
     void testSave3() {
 
-        when(localCache.saveMap(anyString(), any(Map.class))).thenReturn(Mono.just(demoMap));
+        when(localCache.saveMap(anyString(), any(Map.class), anyInt())).thenReturn(Mono.just(demoMap));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(false);
 
         StepVerifier.create(cache.saveMap("pparker", demoMap))
@@ -101,7 +101,7 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(localCache).saveMap("pparker", demoMap);
+        verify(localCache).saveMap("pparker", demoMap, -1);
         verify(centralizedCache, timeout(1000).times(0)).saveMap("pparker", demoMap);
     }
 
@@ -110,10 +110,10 @@ class DoubleTierMapCacheUseCaseTest {
     @Test
     @DisplayName("save map prop in local cache, sync upstream")
     void testSaveProp() {
-        when(localCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
+        when(localCache.saveMap(anyString(), anyString(), anyString(), anyInt())).thenReturn(Mono.just("NY"));
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
         when(centralizedCache.existsMap(anyString(), anyString())).thenReturn(Mono.just(false));
-        when(centralizedCache.saveMap(anyString(), anyString(), anyString())).thenReturn(Mono.just("NY"));
+        when(centralizedCache.saveMap(anyString(), anyString(), anyString(), anyInt())).thenReturn(Mono.just("NY"));
 
         StepVerifier.create(cache.saveMap("pparker", "city", "NY"))
                 .expectSubscription()
@@ -123,8 +123,8 @@ class DoubleTierMapCacheUseCaseTest {
                 .hasNotDiscardedElements()
                 .hasNotDroppedElements();
 
-        verify(localCache).saveMap("pparker", "city", "NY");
-        verify(centralizedCache, timeout(1000)).saveMap("pparker", "city", "NY");
+        verify(localCache).saveMap("pparker", "city", "NY", -1);
+        verify(centralizedCache, timeout(1000)).saveMap("pparker", "city", "NY", -1);
     }
 
 
