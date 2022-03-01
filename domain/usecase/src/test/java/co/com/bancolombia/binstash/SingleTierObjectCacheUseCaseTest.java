@@ -22,6 +22,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +78,7 @@ class SingleTierObjectCacheUseCaseTest {
     void testSave() {
         assert cache != null;
 
-        when(mockedStash.save(anyString(), anyString())).thenReturn(Mono.just(serializedPerson));
+        when(mockedStash.save(anyString(), anyString(), eq(-1))).thenReturn(Mono.just(serializedPerson));
         when(mockedStash.evictAll()).thenReturn(Mono.just(true));
 
         StepVerifier.create(cache.save("pparker", p))
@@ -86,7 +87,7 @@ class SingleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).save("pparker", serializedPerson);
+        verify(mockedStash).save("pparker", serializedPerson, -1);
     }
 
     @Test
@@ -105,7 +106,7 @@ class SingleTierObjectCacheUseCaseTest {
             e.printStackTrace();
         }
 
-        when(mockedStash.save(anyString(), anyString())).thenReturn(Mono.just(serializedListOfPerson));
+        when(mockedStash.save(anyString(), anyString(), eq(-1))).thenReturn(Mono.just(serializedListOfPerson));
 
         StepVerifier.create(cache2.save("pparker", List.of(p)))
                 .expectSubscription()
@@ -113,7 +114,7 @@ class SingleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).save("pparker", serializedListOfPerson);
+        verify(mockedStash).save("pparker", serializedListOfPerson, -1);
     }
 
 
@@ -122,7 +123,7 @@ class SingleTierObjectCacheUseCaseTest {
     void testGet() {
         assert cache != null;
 
-        when(mockedStash.save(anyString(), anyString())).thenReturn(Mono.just(serializedPerson));
+        when(mockedStash.save(anyString(), anyString(), eq(-1))).thenReturn(Mono.just(serializedPerson));
         when(mockedStash.get(anyString())).thenReturn(Mono.just(serializedPerson));
 
         Mono<Person> personMono = cache.save("pparker", p)
@@ -137,7 +138,7 @@ class SingleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).save("pparker", serializedPerson);
+        verify(mockedStash).save("pparker", serializedPerson, -1);
         verify(mockedStash).get("pparker");
     }
 
@@ -156,7 +157,7 @@ class SingleTierObjectCacheUseCaseTest {
             e.printStackTrace();
         }
 
-        when(mockedStash.save(anyString(), anyString())).thenReturn(Mono.just(serializedListOfPerson));
+        when(mockedStash.save(anyString(), anyString(), eq(-1))).thenReturn(Mono.just(serializedListOfPerson));
         when(mockedStash.get(anyString())).thenReturn(Mono.just(serializedListOfPerson));
 
         Mono<List<Person>> persons = cache2.save("persons", List.of(p))
@@ -168,7 +169,7 @@ class SingleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).save("persons", serializedListOfPerson);
+        verify(mockedStash).save("persons", serializedListOfPerson, -1);
         verify(mockedStash).get("persons");
     }
 
@@ -187,7 +188,7 @@ class SingleTierObjectCacheUseCaseTest {
             e.printStackTrace();
         }
 
-        when(mockedStash.save(anyString(), anyString())).thenReturn(Mono.just(serializedMapOfPerson));
+        when(mockedStash.save(anyString(), anyString(), eq(-1))).thenReturn(Mono.just(serializedMapOfPerson));
         when(mockedStash.get(anyString())).thenReturn(Mono.just(serializedMapOfPerson));
 
         Mono<Map<String, Person>> persons = cache2.save("persons", Map.of("p1", p))
@@ -200,7 +201,7 @@ class SingleTierObjectCacheUseCaseTest {
                 .expectComplete()
                 .verify();
 
-        verify(mockedStash).save("persons", serializedMapOfPerson);
+        verify(mockedStash).save("persons", serializedMapOfPerson, -1);
         verify(mockedStash).get("persons");
     }
 

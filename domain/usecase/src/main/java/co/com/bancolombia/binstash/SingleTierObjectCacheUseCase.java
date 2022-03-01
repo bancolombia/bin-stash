@@ -1,5 +1,6 @@
 package co.com.bancolombia.binstash;
 
+import co.com.bancolombia.binstash.model.InvalidValueException;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
 import co.com.bancolombia.binstash.model.api.StringStash;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,10 +19,19 @@ public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
 
     @Override
     public Mono<T> save(String key, T value) {
-        return Mono.just(value)
-                .map(this::serialize)
-                .flatMap(serialized -> cache.save(key, serialized))
-                .map(r -> value);
+        return save(key, value, -1);
+    }
+
+    @Override
+    public Mono<T> save(String key, T value, int ttl) {
+        if (value == null) {
+            return Mono.error(new InvalidValueException("Value cannot be null"));
+        } else {
+            return Mono.just(value)
+                    .map(this::serialize)
+                    .flatMap(serialized -> cache.save(key, serialized, ttl))
+                    .map(r -> value);
+        }
     }
 
     @Override

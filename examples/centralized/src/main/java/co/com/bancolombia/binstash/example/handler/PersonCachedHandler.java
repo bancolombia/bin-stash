@@ -20,6 +20,8 @@ import java.util.Optional;
 @Component
 public class PersonCachedHandler {
 
+    private static final int EXPIRE_AFTER = 10;
+
     public final DummyRepo dummyRepo;
     public final ObjectCache<Person> objectCache;
 
@@ -39,7 +41,8 @@ public class PersonCachedHandler {
             .lookup(k -> objectCache.get(k, Person.class)
                      .map(Signal::next), key)
                 .onCacheMissResume(dummyRepo.findByName(key))
-                .andWriteWith((k, sig) -> objectCache.save(k, sig.get()).then());
+                // write to cache, and expire element after 10 seconds
+                .andWriteWith((k, sig) -> objectCache.save(k, sig.get(), EXPIRE_AFTER).then());
 
         return cached
                 .flatMap(person -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)

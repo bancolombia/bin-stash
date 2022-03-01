@@ -5,7 +5,9 @@ import reactor.core.publisher.Mono;
 import java.util.Set;
 
 /**
- * Cache for storing &lt;String, T&gt; data.
+ * API for storing Objects in cache. Implementor will use <pre>Stash</pre> as a repository, and Objects will be
+ * serialized into <pre>String</pre> before invoking the appropriate <pre>Stash</pre> save operations, and deserialized
+ * back into the corresponding Type on get operations.
  */
 public interface ObjectCache<T> {
 
@@ -16,6 +18,15 @@ public interface ObjectCache<T> {
      * @return value stored
      */
     Mono<T> save(String key, T value);
+
+    /**
+     * Save value to cache, alternatively specifying a TTL for the key
+     * @param key key to index value
+     * @param value value to store
+     * @param ttl time key should live in cache
+     * @return value stored
+     */
+    Mono<T> save(String key, T value, int ttl);
 
     /**
      * Gets an element from cache
