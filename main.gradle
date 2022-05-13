@@ -42,13 +42,17 @@ subprojects {
     }
 
     dependencies {
-        implementation 'io.projectreactor:reactor-core'
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        testAnnotationProcessor 'org.projectlombok:lombok'
-        testCompileOnly 'org.projectlombok:lombok'
-        testImplementation 'io.projectreactor:reactor-test'
+
+        implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
+
+        implementation 'io.projectreactor:reactor-core'
+        compileOnly 'org.projectlombok:lombok:1.18.24'
+        annotationProcessor 'org.projectlombok:lombok:1.18.24'
+        testCompileOnly 'org.projectlombok:lombok:1.18.24'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+        testImplementation 'io.projectreactor:reactor-test'
+
         testImplementation('org.junit.jupiter:junit-jupiter')
         testImplementation 'org.mockito:mockito-inline:3.7.7'
         testImplementation 'org.mockito:mockito-junit-jupiter:3.7.7'
@@ -64,7 +68,6 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         }
     }
