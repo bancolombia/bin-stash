@@ -3,7 +3,7 @@ dependencies {
     compile project(':bin-stash-redis')
     implementation 'org.springframework:spring-core'
     implementation 'org.springframework:spring-context'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'org.springframework:spring-test'
     testImplementation 'com.github.kstyrc:embedded-redis:0.6'
 }

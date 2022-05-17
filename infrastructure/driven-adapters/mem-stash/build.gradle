@@ -1,5 +1,5 @@
 dependencies {
     compile project(':bin-stash-model')
-    compile 'org.apache.commons:commons-lang3:3.11'
-    compile 'com.github.ben-manes.caffeine:caffeine:3.0.5'
+    compile 'org.apache.commons:commons-lang3'
+    compile 'com.github.ben-manes.caffeine:caffeine:3.0.6'
 }
