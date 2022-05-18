@@ -52,7 +52,6 @@ subprojects {
 
     dependencies {
 
-        implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
 
         implementation 'io.projectreactor:reactor-core'
@@ -77,6 +76,7 @@ subprojects {
 
     dependencyManagement {
         imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         }
     }
