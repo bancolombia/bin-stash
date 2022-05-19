@@ -8,6 +8,8 @@ allprojects {
         mavenCentral()
     }
 
+    group 'com.github.bancolombia'
+
     sonarqube {
         properties {
             property "sonar.sourceEncoding", "UTF-8"
@@ -25,6 +27,13 @@ allprojects {
         }
     }
 }
+
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
+
 subprojects {
 
     apply plugin: "java-library"
@@ -43,7 +52,6 @@ subprojects {
 
     dependencies {
 
-        implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
 
         implementation 'io.projectreactor:reactor-core'
@@ -68,6 +76,7 @@ subprojects {
 
     dependencyManagement {
         imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
             mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         }
     }
@@ -156,16 +165,6 @@ subprojects {
                     groupId = groupId
                     artifactId = artifactId
                     version = project.property('version')
-                }
-            }
-            repositories {
-                maven {
-                    name = "OSSRH"
-                    url = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-                    credentials {
-                        username = System.getenv("MAVEN_USERNAME")
-                        password = System.getenv("MAVEN_PASSWORD")
-                    }
                 }
             }
         }
