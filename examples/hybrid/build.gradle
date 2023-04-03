@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':bin-stash-hybrid')
+    implementation project(':bin-stash-hybrid')
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'io.projectreactor.addons:reactor-extra'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -8,10 +8,6 @@ dependencies {
 test.onlyIf { !project.hasProperty('examplesTesting') }
 jacocoTestCoverageVerification.onlyIf { !project.hasProperty('examplesCoverage') }
 jacocoTestReport.onlyIf { !project.hasProperty('examplesCoverage') }
-
-project.afterEvaluate {
-    project.tasks.install.enabled(false)
-}
 
 sonarqube {
     skipProject = true
