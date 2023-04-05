@@ -1,6 +1,6 @@
 dependencies {
-    compile project(':bin-stash-model')
-    compile 'org.apache.commons:commons-lang3'
+    api project(':bin-stash-model')
+    implementation 'org.apache.commons:commons-lang3'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     testImplementation 'com.google.re2j:re2j:1.6'
 }

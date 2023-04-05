@@ -1,6 +1,6 @@
 dependencies {
-    compile project(':bin-stash-model')
-    compile 'io.lettuce:lettuce-core:6.0.9.RELEASE'
-    compile 'org.apache.commons:commons-lang3'
+    implementation project(':bin-stash-model')
+    implementation 'io.lettuce:lettuce-core'
+    implementation 'org.apache.commons:commons-lang3'
     testImplementation 'com.github.kstyrc:embedded-redis:0.6'
 }

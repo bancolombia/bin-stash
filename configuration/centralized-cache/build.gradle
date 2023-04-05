@@ -1,6 +1,6 @@
 dependencies {
-    compile project(':bin-stash-usecase')
-    compile project(':bin-stash-redis')
+    api project(':bin-stash-usecase')
+    api project(':bin-stash-redis')
     implementation 'org.springframework:spring-core'
     implementation 'org.springframework:spring-context'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

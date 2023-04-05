@@ -21,11 +21,11 @@ project(':bin-stash-centralized').projectDir = file('./configuration/centralized
 include ":bin-stash-hybrid"
 project(':bin-stash-hybrid').projectDir = file('./configuration/hybrid-cache')
 
-include ":bin-stash-example-local"
-project(':bin-stash-example-local').projectDir = file('./examples/local')
-
-include ":bin-stash-example-centralized"
-project(':bin-stash-example-centralized').projectDir = file('./examples/centralized')
-
-include ":bin-stash-example-hybrid"
-project(':bin-stash-example-hybrid').projectDir = file('./examples/hybrid')
+//include ":bin-stash-example-local"
+//project(':bin-stash-example-local').projectDir = file('./examples/local')
+//
+//include ":bin-stash-example-centralized"
+//project(':bin-stash-example-centralized').projectDir = file('./examples/centralized')
+//
+//include ":bin-stash-example-hybrid"
+//project(':bin-stash-example-hybrid').projectDir = file('./examples/hybrid')
