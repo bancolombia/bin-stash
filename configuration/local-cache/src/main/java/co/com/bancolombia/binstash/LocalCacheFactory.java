@@ -7,12 +7,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class LocalCacheFactory<V extends Object> {
+public class LocalCacheFactory {
 
     private final MemoryStash memoryStash;
     private final ObjectMapper objectMapper;
 
-    public ObjectCache<V> newObjectCache() {
+    public <V> ObjectCache<V> newObjectCache() {
         return new SingleTierObjectCacheUseCase<>(this.memoryStash,
                 new SerializatorHelper<>(this.objectMapper));
     }

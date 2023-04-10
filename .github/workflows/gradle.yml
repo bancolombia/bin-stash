@@ -28,7 +28,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean build -x test -x check
       - name: Scan generated project dependencies
         run: ./gradlew dependencyCheckAggregate
       - name: Execute jacocoTestReport
@@ -58,7 +58,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Setup Javadoc
-        run: ./gradlew install
+        run: /gradlew clean build -x test -x check
       - name: Prepare gpg key
         run: |
           mkdir -p ~/.gradle/

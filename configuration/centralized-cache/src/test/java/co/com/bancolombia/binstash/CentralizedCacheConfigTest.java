@@ -36,12 +36,12 @@ class CentralizedCacheConfigTest {
     @Test
     @DisplayName("Create redis stash")
     void createStash() {
-        assertNotNull(config.redisStash());
+        assertNotNull(config.redisStash(config.redisProperties()));
     }
 
     @Test
     @DisplayName("Create factory")
     void createFactory() {
-        assertNotNull(config.newFactory(config.redisStash(), new ObjectMapper()));
+        assertNotNull(config.newFactory(config.redisStash(config.redisProperties()), new ObjectMapper()));
     }
 }

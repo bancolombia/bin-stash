@@ -30,7 +30,7 @@ public class LocalExampleConfiguration {
     }
 
     @Bean
-    public ObjectCache<Person> objectCache(LocalCacheFactory<Person> localCacheFactory) {
+    public ObjectCache<Person> objectCache(LocalCacheFactory localCacheFactory) {
         return localCacheFactory.newObjectCache();
     }
 

@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class HybridCacheFactory<V extends Object> {
+public class HybridCacheFactory<V> {
 
     private final ObjectCache<V> localCache;
     private final ObjectCache<V> centralizedCache;

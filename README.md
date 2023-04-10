@@ -39,7 +39,7 @@ dependencies {
 }
 ```
 
-2.	Configuration
+2.	Supported Configuration
 
 ```yaml
 stash:
@@ -47,10 +47,27 @@ stash:
     maxSize: 10_000
   redis:
     host: myredis.host
+    # Only when connecting to a master/replica
+    #replicas: replica.myredis.host, replica2.myredis.host
     port: 6379
     database: 0
+    # for rbac access
+    username: myuser
     password: mypwd
+    useSsl: true
 ```
+
+| Configuration        | Description                                                                              |
+----------------------|------------------------------------------------------------------------------------------
+| stash.memory.maxSize | maximum allowed bytes to store in memory cache                                           |
+| stash.redis.host     | host to connect to (when connecting to a master-replica cluster this is the master host) |
+| stash.redis.replicas | host names of replicas, comma separated. (when connecting to a master-replica cluster)   |
+| stash.redis.port     | redis port (when connecting to master-replicas will use same port for all hosts)         |
+| stash.redis.database | database number to use on single node (0 default)                                        |
+| stash.redis.username | username (when using RBAC)                                                               |
+| stash.redis.password | password when using AUTH or RBAC                                                         |
+| stash.redis.useSsl | true or false. Indicates the client to connect to redis via secure connection            |
+
 
 3. Usage
 
