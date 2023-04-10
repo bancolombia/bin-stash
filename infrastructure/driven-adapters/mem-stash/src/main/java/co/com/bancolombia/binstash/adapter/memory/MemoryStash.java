@@ -121,7 +121,7 @@ public class MemoryStash implements Stash {
             return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
         else {
             final String prefix = key + KEY_SEP;
-            return keySet().map(keys -> keys.stream().filter(k -> k.startsWith(prefix)).collect(Collectors.toList()))
+            return keySet().map(keys -> keys.stream().filter(k -> k.startsWith(prefix)).toList())
                     .map(keys -> Tuples.of(keys, caffeineCache.getAllPresent(keys)))
                     .map(tuple2 -> {
                         final Map<String, String> newMap = new HashMap<>();
@@ -167,7 +167,7 @@ public class MemoryStash implements Stash {
                 throw new InvalidKeyException(ERROR_KEY_MSG);
             return caffeineCache.asMap().keySet().stream()
                     .filter(k -> k.startsWith(prefix))
-                    .collect(Collectors.toList());
+                    .toList();
         }).flatMapMany(Flux::fromIterable)
         .flatMap(this::evict)
         .all(result -> result)

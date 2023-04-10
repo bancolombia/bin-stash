@@ -23,8 +23,8 @@ class LocalCacheTest {
 
     @Test
     void createCache() {
-        LocalCacheConfig<Employee> config = new LocalCacheConfig<>();
-        LocalCacheFactory<Employee> factory = config.localCacheFactory(localStash, objectMapper);
+        LocalCacheConfig config = new LocalCacheConfig();
+        LocalCacheFactory factory = config.localCacheFactory(localStash, objectMapper);
         ObjectCache<Employee> cache = factory.newObjectCache();
         assertNotNull(cache);
 

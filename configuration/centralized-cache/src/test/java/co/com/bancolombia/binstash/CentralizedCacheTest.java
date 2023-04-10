@@ -22,7 +22,7 @@ class CentralizedCacheTest {
 
     @Test
     void createCache() {
-        ObjectCache<Employee> cache = new CentralizedCacheFactory<Employee>(redisStash, objectMapper).newObjectCache();
+        ObjectCache<Employee> cache = new CentralizedCacheFactory(redisStash, objectMapper).newObjectCache();
         assertNotNull(cache);
     }
 

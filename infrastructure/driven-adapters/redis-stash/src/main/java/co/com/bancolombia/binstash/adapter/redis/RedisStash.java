@@ -3,7 +3,6 @@ package co.com.bancolombia.binstash.adapter.redis;
 import co.com.bancolombia.binstash.model.InvalidKeyException;
 import co.com.bancolombia.binstash.model.api.Stash;
 import io.lettuce.core.KeyValue;
-import io.lettuce.core.RedisClient;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +18,10 @@ public class RedisStash implements Stash {
     private static final int DEFAULT_PER_KEY_EXPIRATION_SECONDS = 300;
 
     private final RedisReactiveCommands<String, String> redisReactiveCommands;
+
     private final int expireAfter;
 
-    private RedisStash(RedisReactiveCommands<String, String> redisReactiveCommands,
+    RedisStash(RedisReactiveCommands<String, String> redisReactiveCommands,
                        int expireAfter) {
         this.redisReactiveCommands = redisReactiveCommands;
         this.expireAfter = expireAfter;
@@ -167,64 +167,4 @@ public class RedisStash implements Stash {
         return computed;
     }
 
-    public static final class Builder {
-        private String host;
-        private int port = 6379;
-        private int database = 0;
-        private String password;
-        private int expireAfter = -1;
-
-        public Builder expireAfter(int seconds) {
-            this.expireAfter = seconds;
-            return this;
-        }
-
-        public Builder host(String host) {
-            this.host = host;
-            return this;
-        }
-
-        public Builder port(int port) {
-            this.port = port;
-            return this;
-        }
-
-        public Builder db(int db) {
-            this.database = db;
-            return this;
-        }
-
-        public Builder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        private String buildUrl() {
-            StringBuilder buffer = new StringBuilder();
-            buffer.append("redis://");
-            if (StringUtils.isNotBlank(this.password)) {
-                buffer.append(this.password);
-                buffer.append("@");
-            }
-            if (StringUtils.isNotBlank(this.host)) {
-                buffer.append(this.host);
-            } else {
-                buffer.append("localhost");
-            }
-            buffer.append(":");
-            buffer.append(this.port);
-            if (this.database > 0) {
-                buffer.append("/");
-                buffer.append(this.database);
-            }
-            return buffer.toString();
-        }
-
-        public RedisStash build() {
-            RedisClient redisClient =
-                    RedisClient.create(this.buildUrl());
-            RedisReactiveCommands<String, String> commands = redisClient.connect().reactive();
-            return new RedisStash(commands, this.expireAfter);
-        }
-    }
 }

@@ -44,7 +44,7 @@ class HybridCacheConfigTest {
     @Test
     @DisplayName("Create object redis stash")
     void createRedisStash() {
-        assertNotNull(config.redisStash());
+        assertNotNull(config.redisStash(config.redisProperties()));
     }
 
     @Test
@@ -56,7 +56,7 @@ class HybridCacheConfigTest {
     @Test
     @DisplayName("Create map redis cache")
     void createMapDistrStash() {
-        assertNotNull(config.centralizedMapCache(config.redisStash()));
+        assertNotNull(config.centralizedMapCache(config.redisStash(config.redisProperties())));
     }
 
     @Test
@@ -68,7 +68,7 @@ class HybridCacheConfigTest {
     @Test
     @DisplayName("Create object redis cache")
     void createObjectDistrStash() {
-        assertNotNull(config.centralizedObjectCache(config.redisStash(),
+        assertNotNull(config.centralizedObjectCache(config.redisStash(config.redisProperties()),
                 new ObjectMapper()));
     }
 
@@ -77,9 +77,9 @@ class HybridCacheConfigTest {
     void createFactory() {
         assertNotNull(config.hybridCacheFactory(
                 config.localObjectCache(config.memStash(), new ObjectMapper()),
-                config.centralizedObjectCache(config.redisStash(), new ObjectMapper()),
+                config.centralizedObjectCache(config.redisStash(config.redisProperties()), new ObjectMapper()),
                 config.localMapCache(config.memStash()),
-                config.centralizedMapCache(config.redisStash())
+                config.centralizedMapCache(config.redisStash(config.redisProperties()))
                 )
         );
     }

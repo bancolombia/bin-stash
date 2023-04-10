@@ -30,7 +30,7 @@ public class CentralizedExampleConfiguration {
     }
 
     @Bean
-    public ObjectCache<Person> objectCache(CentralizedCacheFactory<Person> centralizedCacheFactory) {
+    public ObjectCache<Person> objectCache(CentralizedCacheFactory centralizedCacheFactory) {
         return centralizedCacheFactory.newObjectCache();
     }
 

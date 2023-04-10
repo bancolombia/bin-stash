@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class LocalCacheConfig<V extends Object> {
+public class LocalCacheConfig {
 
     @Value("${stash.memory.expireTime:-1}")
     private int expireTime;
@@ -26,8 +26,8 @@ public class LocalCacheConfig<V extends Object> {
     }
 
     @Bean
-    public LocalCacheFactory<V> localCacheFactory(@Qualifier("localMemStashBean") MemoryStash memStash,
+    public LocalCacheFactory localCacheFactory(@Qualifier("localMemStashBean") MemoryStash memStash,
                                                   ObjectMapper objectMapper) {
-        return new LocalCacheFactory<>(memStash, objectMapper);
+        return new LocalCacheFactory(memStash, objectMapper);
     }
 }

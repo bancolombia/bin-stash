@@ -11,11 +11,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class LocalCacheConfigTest {
 
-    private LocalCacheConfig<Employee> config;
+    private LocalCacheConfig config;
 
     @BeforeEach
     void before() {
-        config = new LocalCacheConfig<>();
+        config = new LocalCacheConfig();
         ReflectionTestUtils.setField(config, "expireTime", 1);
         ReflectionTestUtils.setField(config, "maxSize", 10);
     }

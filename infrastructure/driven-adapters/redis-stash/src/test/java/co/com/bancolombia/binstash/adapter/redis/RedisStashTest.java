@@ -18,6 +18,7 @@ class RedisStashTest {
 
     private static final String TEST_VALUE = "Hello World";
     private static RedisServer redisServer;
+    private RedisProperties properties;
     private RedisStash stash;
     private Map<String, String> demoMap;
 
@@ -38,11 +39,12 @@ class RedisStashTest {
         demoMap.put("name", "Peter");
         demoMap.put("lastName", "Parker");
 
-        this.stash = new RedisStash.Builder()
-                .expireAfter(1)
-                .host("127.0.0.1")
-                .port(16379)
-                .build();
+        properties = new RedisProperties();
+        properties.setExpireAfter(1);
+        properties.setHost("127.0.0.1");
+        properties.setPort(16379);
+
+        this.stash = RedisStashFactory.redisStash(properties);
 
         this.stash.evictAll();
     }
@@ -55,20 +57,24 @@ class RedisStashTest {
 //    @Test
     @DisplayName("Should create instance with defaults")
     void testCreateWithDefaults() {
-        assertNotNull(new RedisStash.Builder().build());
+        assertNotNull(RedisStashFactory.redisStash(properties));
     }
 
     @Test
     @DisplayName("Should create instance with all props setted")
     void testCreateManual() {
-        assertNotNull(new RedisStash.Builder()
-                .db(0)
-                .expireAfter(1)
-                .host("localhost")
-                .port(16379)
-//                .password("mypwd")
-                .build()
-        );
+        assertNotNull(RedisStashFactory.redisStash(properties));
+    }
+
+    @Test
+    @DisplayName("Should create connection to a master-replica cluster")
+    void testCreateMasterReplicaConnection() {
+        RedisProperties mrProperties = new RedisProperties();
+        mrProperties.setExpireAfter(1);
+        mrProperties.setHost("localhost");
+        mrProperties.setHostReplicas("localhost");
+        mrProperties.setPort(16379);
+        assertNotNull(RedisStashFactory.redisStash(mrProperties));
     }
 
 
@@ -145,19 +151,6 @@ class RedisStashTest {
                 .verify();
 
     }
-
-//    @Test
-//    @DisplayName("Should save, expire, then try to get element")
-//    void testPutExpireGet() {
-//        Mono<String> op = stash.save("key3", TEST_VALUE)
-//                .delayElement(Duration.ofSeconds(3))
-//                .then(stash.get("key3"));
-//
-//        StepVerifier.create(op)
-//                .expectSubscription()
-//                .expectComplete()
-//                .verify();
-//    }
 
     @Test
     @DisplayName("Should save, evict, then try to get element")

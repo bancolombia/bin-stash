@@ -5,7 +5,8 @@ import co.com.bancolombia.binstash.SerializatorHelper;
 import co.com.bancolombia.binstash.SingleTierMapCacheUseCase;
 import co.com.bancolombia.binstash.SingleTierObjectCacheUseCase;
 import co.com.bancolombia.binstash.adapter.memory.MemoryStash;
-import co.com.bancolombia.binstash.adapter.redis.RedisStash;
+import co.com.bancolombia.binstash.adapter.redis.RedisProperties;
+import co.com.bancolombia.binstash.adapter.redis.RedisStashFactory;
 import co.com.bancolombia.binstash.model.api.MapCache;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
 import co.com.bancolombia.binstash.model.api.Stash;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class HybridCacheConfig<V extends Object> {
+public class HybridCacheConfig {
 
     @Value("${stash.memory.expireTime:-1}")
     private int localExpireTime;
@@ -27,14 +28,23 @@ public class HybridCacheConfig<V extends Object> {
     @Value("${stash.redis.host:localhost}")
     private String host;
 
+    @Value("${stash.redis.replicas:}")
+    private String replicas;
+
     @Value("${stash.redis.port:6379}")
     private int port;
 
     @Value("${stash.redis.database:0}")
     private int database;
 
+    @Value("${stash.redis.username:}")
+    private String username;
+
     @Value("${stash.redis.password:}")
     private String password;
+
+    @Value("${stash.redis.useSsl:false}")
+    private boolean useSsl;
 
     @Value("${stash.redis.expireTime:-1}")
     private int redisExpireTime;
@@ -47,26 +57,34 @@ public class HybridCacheConfig<V extends Object> {
                 .build();
     }
 
+    @Bean
+    public RedisProperties redisProperties() {
+        RedisProperties properties = new RedisProperties();
+        properties.setHost(this.host);
+        properties.setHostReplicas(this.replicas);
+        properties.setPort(this.port);
+        properties.setUsername(this.username);
+        properties.setPassword(this.password);
+        properties.setDatabase(this.database);
+        properties.setUseSsl(this.useSsl);
+        properties.setExpireAfter(this.redisExpireTime);
+        return properties;
+    }
+
     @Bean(name = "hybridCentralStashBean")
-    public Stash redisStash() {
-        return new RedisStash.Builder()
-                .expireAfter(redisExpireTime)
-                .host(host)
-                .port(port)
-                .db(database)
-                .password(password)
-                .build();
+    public Stash redisStash(RedisProperties redisProperties) {
+        return RedisStashFactory.redisStash(redisProperties);
     }
 
     @Bean(name = "hybridLocalObjCacheBean")
-    public ObjectCache<V> localObjectCache(@Qualifier("hybridMemStashBean") Stash memStash,
+    public <V> ObjectCache<V> localObjectCache(@Qualifier("hybridMemStashBean") Stash memStash,
                                            ObjectMapper objectMapper) {
         return new SingleTierObjectCacheUseCase<>(memStash,
                 new SerializatorHelper<>(objectMapper));
     }
 
     @Bean(name = "hybridCentralObjCacheBean")
-    public ObjectCache<V> centralizedObjectCache(@Qualifier("hybridCentralStashBean") Stash redisStash,
+    public <V> ObjectCache<V> centralizedObjectCache(@Qualifier("hybridCentralStashBean") Stash redisStash,
                                                  ObjectMapper objectMapper) {
         return new SingleTierObjectCacheUseCase<>(redisStash,
                 new SerializatorHelper<>(objectMapper));
@@ -83,7 +101,7 @@ public class HybridCacheConfig<V extends Object> {
     }
 
     @Bean
-    public HybridCacheFactory<V> hybridCacheFactory(@Qualifier("hybridLocalObjCacheBean") ObjectCache<V> localObjectCache,
+    public <V> HybridCacheFactory<V> hybridCacheFactory(@Qualifier("hybridLocalObjCacheBean") ObjectCache<V> localObjectCache,
                                                     @Qualifier("hybridCentralObjCacheBean") ObjectCache<V> centralizedObjectCache,
                                                     @Qualifier("hybridLocalMapCacheBean") MapCache localMapCache,
                                                     @Qualifier("hybridCentralMapCacheBean") MapCache centralizedMapCache) {
