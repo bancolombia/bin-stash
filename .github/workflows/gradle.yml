@@ -38,9 +38,9 @@ jobs:
       - name: Push codeCoverage to Codecov
         if: endsWith(github.REF, '/master') == true
         run: bash <(curl -s https://codecov.io/bash)
-      - name: Run sonarqube
+      - name: Run sonar
         if: endsWith(github.REF, '/master') == true
-        run: ./gradlew sonarqube --stacktrace
+        run: ./gradlew sonar --stacktrace
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

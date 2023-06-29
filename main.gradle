@@ -58,10 +58,10 @@ subprojects {
         testImplementation(platform('org.junit:junit-bom:5.7.0'))
 
         implementation 'io.projectreactor:reactor-core'
-        compileOnly 'org.projectlombok:lombok:1.18.24'
-        annotationProcessor 'org.projectlombok:lombok:1.18.24'
-        testCompileOnly 'org.projectlombok:lombok:1.18.24'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+        compileOnly 'org.projectlombok:lombok:1.18.28'
+        annotationProcessor 'org.projectlombok:lombok:1.18.28'
+        testCompileOnly 'org.projectlombok:lombok:1.18.28'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
         testImplementation 'io.projectreactor:reactor-test'
 
         testImplementation('org.junit.jupiter:junit-jupiter')
@@ -69,10 +69,10 @@ subprojects {
         testImplementation 'org.mockito:mockito-junit-jupiter:3.7.7'
     }
 
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group == 'org.apache.logging.log4j') {
-                details.useVersion '2.19.0'
+                details.useVersion '2.20.0'
             }
         }
     }
@@ -80,7 +80,6 @@ subprojects {
     dependencyManagement {
         imports {
             mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
-            //mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         }
     }
 
@@ -96,10 +95,10 @@ subprojects {
     jacocoTestReport {
         dependsOn test
         reports {
-            xml.enabled true
-            xml.destination file("${buildDir}/reports/jacoco.xml")
-            csv.enabled false
-            html.destination file("${buildDir}/reports/jacocoHtml")
+            xml.setRequired true
+            xml.setOutputLocation file("${buildDir}/reports/jacoco.xml")
+            csv.setRequired false
+            html.setOutputLocation file("${buildDir}/reports/jacocoHtml")
         }
     }
     compileJava {
@@ -121,14 +120,16 @@ subprojects {
         apply plugin: "maven-publish"
         apply plugin: "signing"
 
-        task sourcesJar(type: Jar, dependsOn: classes) {
-            classifier = 'sources'
+        tasks.register('sourcesJar', Jar) {
+            dependsOn classes
+            archiveClassifier = 'sources'
             from sourceSets.main.allSource
         }
 
         javadoc.failOnError = false
-        task javadocJar(type: Jar, dependsOn: javadoc) {
-            classifier = 'javadoc'
+        tasks.register('javadocJar', Jar) {
+            dependsOn javadoc
+            archiveClassifier = 'javadoc'
             from javadoc.destinationDir
         }
 
@@ -137,7 +138,7 @@ subprojects {
             archives javadocJar
         }
 
-        tasks.withType(GenerateModuleMetadata) {
+        tasks.withType(GenerateModuleMetadata).configureEach {
             enabled = false
         }
 
@@ -189,17 +190,22 @@ subprojects {
 
 }
 
-task generateMergedReport(type: JacocoReport) {
-    dependsOn = subprojects.test
+tasks.register('generateMergedReport', JacocoReport) {
+    dependsOn test
+    dependsOn subprojects.test
+    dependsOn subprojects.javadoc
+    dependsOn subprojects.jacocoTestReport
     additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories.setFrom files(subprojects.sourceSets.main.output)
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
     reports {
-        xml.enabled true
-        csv.enabled false
-        html.enabled true
+        xml.setRequired true
+        csv.setRequired false
+        html.setRequired true
     }
 }
 
-
+tasks.named('wrapper') {
+    gradleVersion = '8.1.1'
+}
