@@ -19,7 +19,7 @@ For local cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-local:1.2.0'
+    implementation 'com.github.bancolombia:bin-stash-local:1.2.1'
 }
 ```
 
@@ -27,7 +27,7 @@ For a centralized (redis) cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-centralized:1.2.0'
+    implementation 'com.github.bancolombia:bin-stash-centralized:1.2.1'
 }
 ```
 
@@ -35,7 +35,7 @@ For an hybrid (local and centralized) cache
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-hybrid:1.2.0'
+    implementation 'com.github.bancolombia:bin-stash-hybrid:1.2.1'
 }
 ```
 
@@ -44,6 +44,7 @@ dependencies {
 ```yaml
 stash:
   memory:
+    expireAfter: 60
     maxSize: 10_000
   redis:
     host: myredis.host
@@ -60,6 +61,7 @@ stash:
 | Configuration        | Description                                                                              |
 ----------------------|------------------------------------------------------------------------------------------
 | stash.memory.maxSize | maximum allowed bytes to store in memory cache                                           |
+| stash.memory.expireAfter | set maximum time to hold keys in cache (in seconds).<br/> If not defined, a value of 300 seconds is used as default.<br/>Note that `save()` methods that receive a TTL argument, will ignore such value if its greater than `expireAfter`.                               |
 | stash.redis.host     | host to connect to (when connecting to a master-replica cluster this is the master host) |
 | stash.redis.replicas | host names of replicas, comma separated. (when connecting to a master-replica cluster)   |
 | stash.redis.port     | redis port (when connecting to master-replicas will use same port for all hosts)         |

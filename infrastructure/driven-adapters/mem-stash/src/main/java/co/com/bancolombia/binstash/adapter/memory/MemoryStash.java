@@ -184,11 +184,11 @@ public class MemoryStash implements Stash {
 
     private int computeTtl(int cadidateTtl) {
         int computed;
-        if (this.expireAfter > 0) {
-            computed = this.expireAfter;
-        }
-        else if (cadidateTtl > 0) {
+        if (cadidateTtl > 0) {
             computed = cadidateTtl;
+        }
+        else if (cadidateTtl < 0 && this.expireAfter > 0) {
+            computed = this.expireAfter;
         }
         else {
             computed = DEFAULT_PER_KEY_EXPIRATION_SECONDS;
