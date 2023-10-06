@@ -69,6 +69,16 @@ class MemoryStringStashTest {
     }
 
     @Test
+    @DisplayName("Should save element whit ttl")
+    void testSaveWhitTtl() {
+        StepVerifier.create(stash.save(TEST_KEY, TEST_VALUE,1))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
     @DisplayName("Should not save with null key")
     void testSaveWithNullKey() {
         StepVerifier.create(stash.save(null, TEST_VALUE))
