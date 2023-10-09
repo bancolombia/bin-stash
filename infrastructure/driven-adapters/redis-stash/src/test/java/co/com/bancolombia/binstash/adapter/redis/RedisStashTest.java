@@ -40,7 +40,7 @@ class RedisStashTest {
         demoMap.put("lastName", "Parker");
 
         properties = new RedisProperties();
-        properties.setExpireAfter(1);
+        properties.setExpireTime(1);
         properties.setHost("127.0.0.1");
         properties.setPort(16379);
 
@@ -70,7 +70,7 @@ class RedisStashTest {
     @DisplayName("Should create connection to a master-replica cluster")
     void testCreateMasterReplicaConnection() {
         RedisProperties mrProperties = new RedisProperties();
-        mrProperties.setExpireAfter(1);
+        mrProperties.setExpireTime(1);
         mrProperties.setHost("localhost");
         mrProperties.setHostReplicas("localhost");
         mrProperties.setPort(16379);

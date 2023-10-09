@@ -11,14 +11,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LocalCacheConfig {
 
-    @Value("${stash.memory.expireTime:-1}")
-    private int expireTime;
-
-    @Value("${stash.memory.maxSize:1000}")
-    private int maxSize;
-
     @Bean(name = "localMemStashBean")
-    public MemoryStash memStash() {
+    public MemoryStash memStash(@Value("${stash.memory.expireTime:-1}") int expireTime,
+                                @Value("${stash.memory.maxSize:10000}") int maxSize) {
         return new MemoryStash.Builder()
                 .expireAfter(expireTime)
                 .maxSize(maxSize)

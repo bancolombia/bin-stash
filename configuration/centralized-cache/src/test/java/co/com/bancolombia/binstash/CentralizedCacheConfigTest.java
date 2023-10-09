@@ -1,9 +1,9 @@
 package co.com.bancolombia.binstash;
 
+import co.com.bancolombia.binstash.adapter.redis.RedisProperties;
 import co.com.bancolombia.binstash.config.CentralizedCacheConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
-import org.springframework.test.util.ReflectionTestUtils;
 import redis.embedded.RedisServer;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -14,6 +14,7 @@ class CentralizedCacheConfigTest {
 
     private static RedisServer redisServer;
     private CentralizedCacheConfig config;
+    private RedisProperties redisProperties;
 
     @BeforeAll
     static void prepare() throws IOException {
@@ -29,19 +30,20 @@ class CentralizedCacheConfigTest {
     @BeforeEach
     void before() {
         config = new CentralizedCacheConfig();
-        ReflectionTestUtils.setField(config, "host", "localhost");
-        ReflectionTestUtils.setField(config, "port", 16379);
+        redisProperties = new RedisProperties();
+        redisProperties.setHost("localhost");
+        redisProperties.setPort(16379);
     }
 
     @Test
     @DisplayName("Create redis stash")
     void createStash() {
-        assertNotNull(config.redisStash(config.redisProperties()));
+        assertNotNull(config.redisStash(redisProperties));
     }
 
     @Test
     @DisplayName("Create factory")
     void createFactory() {
-        assertNotNull(config.newFactory(config.redisStash(config.redisProperties()), new ObjectMapper()));
+        assertNotNull(config.newFactory(config.redisStash(redisProperties), new ObjectMapper()));
     }
 }

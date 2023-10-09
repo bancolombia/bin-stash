@@ -19,7 +19,7 @@ For local cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-local:1.2.1'
+    implementation 'com.github.bancolombia:bin-stash-local:1.2.2'
 }
 ```
 
@@ -27,7 +27,7 @@ For a centralized (redis) cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-centralized:1.2.1'
+    implementation 'com.github.bancolombia:bin-stash-centralized:1.2.2'
 }
 ```
 
@@ -35,7 +35,7 @@ For an hybrid (local and centralized) cache
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-hybrid:1.2.1'
+    implementation 'com.github.bancolombia:bin-stash-hybrid:1.2.2'
 }
 ```
 
@@ -44,7 +44,7 @@ dependencies {
 ```yaml
 stash:
   memory:
-    expireAfter: 60
+    expireTime: 60 # 1 minute
     maxSize: 10_000
   redis:
     host: myredis.host
@@ -56,19 +56,21 @@ stash:
     username: myuser
     password: mypwd
     useSsl: true
+    expireTime: 3600 # 1 hour
 ```
 
-| Configuration        | Description                                                                              |
-----------------------|------------------------------------------------------------------------------------------
-| stash.memory.maxSize | maximum allowed bytes to store in memory cache                                           |
-| stash.memory.expireAfter | set maximum time to hold keys in cache (in seconds).<br/> If not defined, a value of 300 seconds is used as default.<br/>Note that `save()` methods that receive a TTL argument, will ignore such value if its greater than `expireAfter`.                               |
-| stash.redis.host     | host to connect to (when connecting to a master-replica cluster this is the master host) |
-| stash.redis.replicas | host names of replicas, comma separated. (when connecting to a master-replica cluster)   |
-| stash.redis.port     | redis port (when connecting to master-replicas will use same port for all hosts)         |
-| stash.redis.database | database number to use on single node (0 default)                                        |
-| stash.redis.username | username (when using RBAC)                                                               |
-| stash.redis.password | password when using AUTH or RBAC                                                         |
-| stash.redis.useSsl | true or false. Indicates the client to connect to redis via secure connection            |
+| Configuration            | Description                                                                                                                                                                                                                                  |
+--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| stash.memory.maxSize     | maximum allowed bytes to store in memory cache                                                                                                                                                                                               |
+| stash.memory.expireTime | set maximum time to hold keys in cache (in seconds).<br/> If not defined, a value of 300 seconds is used as default.<br/>Note that `save()` methods that receive a TTL argument, will ignore such value if its greater than `expireAfter`.   |
+| stash.redis.host         | host to connect to (when connecting to a master-replica cluster this is the master host)                                                                                                                                                     |
+| stash.redis.replicas     | host names of replicas, comma separated. (when connecting to a master-replica cluster)                                                                                                                                                       |
+| stash.redis.port         | redis port (when connecting to master-replicas will use same port for all hosts)                                                                                                                                                             |
+| stash.redis.database     | database number to use on single node (0 default)                                                                                                                                                                                            |
+| stash.redis.username     | username (when using RBAC)                                                                                                                                                                                                                   |
+| stash.redis.password     | password when using AUTH or RBAC                                                                                                                                                                                                             |
+| stash.redis.useSsl       | true or false. Indicates the client to connect to redis via secure connection                                                                                                                                                                |
+| stash.redis.expireTime  | default TTL time (in seconds) to hold every key stored in redis. If this parameter is not defined a default value of 300 seconds is used. This value can be overriden for an specific key, with the TTL argument in the `save()` methods. |
 
 
 3. Usage
