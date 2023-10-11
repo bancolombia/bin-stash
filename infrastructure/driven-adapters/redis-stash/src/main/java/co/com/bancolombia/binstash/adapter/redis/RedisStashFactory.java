@@ -35,7 +35,7 @@ public class RedisStashFactory {
 
         primaryAndReplicaConnection.setReadFrom(ReadFrom.REPLICA);
 
-        return new RedisStash(primaryAndReplicaConnection.reactive(), properties.getExpireAfter());
+        return new RedisStash(primaryAndReplicaConnection.reactive(), properties.getExpireTime());
     }
 
     public static RedisStash redisStashSingle(RedisProperties properties) {
@@ -45,6 +45,6 @@ public class RedisStashFactory {
 
         RedisReactiveCommands<String, String> redisReactiveCommands = redisClient.connect().reactive();
 
-        return new RedisStash(redisReactiveCommands, properties.getExpireAfter());
+        return new RedisStash(redisReactiveCommands, properties.getExpireTime());
     }
 }

@@ -1,9 +1,9 @@
 package co.com.bancolombia.binstash;
 
+import co.com.bancolombia.binstash.adapter.redis.RedisProperties;
 import co.com.bancolombia.binstash.config.HybridCacheConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
-import org.springframework.test.util.ReflectionTestUtils;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
@@ -14,6 +14,8 @@ class HybridCacheConfigTest {
 
     private static RedisServer redisServer;
     private HybridCacheConfig config;
+
+    private RedisProperties redisProperties;
 
     @BeforeAll
     static void prepare() throws IOException {
@@ -29,46 +31,45 @@ class HybridCacheConfigTest {
     @BeforeEach
     void before() {
         config = new HybridCacheConfig();
-        ReflectionTestUtils.setField(config, "localExpireTime", 1);
-        ReflectionTestUtils.setField(config, "localMaxSize", 10);
-        ReflectionTestUtils.setField(config, "host", "localhost");
-        ReflectionTestUtils.setField(config, "port", 16380);
+        redisProperties = new RedisProperties();
+        redisProperties.setHost("localhost");
+        redisProperties.setPort(16380);
     }
 
     @Test
     @DisplayName("Create object memory stash")
     void createMemStash() {
-        assertNotNull(config.memStash());
+        assertNotNull(config.memStash(30, 1_000));
     }
 
     @Test
     @DisplayName("Create object redis stash")
     void createRedisStash() {
-        assertNotNull(config.redisStash(config.redisProperties()));
+        assertNotNull(config.redisStash(redisProperties));
     }
 
     @Test
     @DisplayName("Create map memory cache")
     void createMapLocalStash() {
-        assertNotNull(config.localMapCache(config.memStash()));
+        assertNotNull(config.localMapCache(config.memStash(30, 1_000)));
     }
 
     @Test
     @DisplayName("Create map redis cache")
     void createMapDistrStash() {
-        assertNotNull(config.centralizedMapCache(config.redisStash(config.redisProperties())));
+        assertNotNull(config.centralizedMapCache(config.redisStash(redisProperties)));
     }
 
     @Test
     @DisplayName("Create object memory cache")
     void createObjectLocalStash() {
-        assertNotNull(config.localObjectCache(config.memStash(), new ObjectMapper()));
+        assertNotNull(config.localObjectCache(config.memStash(30, 1_000), new ObjectMapper()));
     }
 
     @Test
     @DisplayName("Create object redis cache")
     void createObjectDistrStash() {
-        assertNotNull(config.centralizedObjectCache(config.redisStash(config.redisProperties()),
+        assertNotNull(config.centralizedObjectCache(config.redisStash(redisProperties),
                 new ObjectMapper()));
     }
 
@@ -76,10 +77,10 @@ class HybridCacheConfigTest {
     @DisplayName("Create factory")
     void createFactory() {
         assertNotNull(config.hybridCacheFactory(
-                config.localObjectCache(config.memStash(), new ObjectMapper()),
-                config.centralizedObjectCache(config.redisStash(config.redisProperties()), new ObjectMapper()),
-                config.localMapCache(config.memStash()),
-                config.centralizedMapCache(config.redisStash(config.redisProperties()))
+                config.localObjectCache(config.memStash(30, 1_000), new ObjectMapper()),
+                config.centralizedObjectCache(config.redisStash(redisProperties), new ObjectMapper()),
+                config.localMapCache(config.memStash(30, 1_000)),
+                config.centralizedMapCache(config.redisStash(redisProperties))
                 )
         );
     }

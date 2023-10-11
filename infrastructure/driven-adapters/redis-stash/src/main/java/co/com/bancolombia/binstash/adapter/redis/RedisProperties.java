@@ -21,7 +21,7 @@ public class RedisProperties {
     private int port;
     private int database;
     private boolean useSsl;
-    private int expireAfter;
+    private int expireTime;
 
     public boolean isMasterReplica() {
         return this.hostReplicas != null && !this.hostReplicas.isEmpty();
