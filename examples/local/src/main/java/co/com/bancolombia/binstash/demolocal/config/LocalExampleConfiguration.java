@@ -38,7 +38,7 @@ public class LocalExampleConfiguration {
     public RouterFunction<ServerResponse> route(PersonHandler personHandler,
                                                 PersonCachedHandler personCachedHandler) {
         return RouterFunctions
-                .route(RequestPredicates.GET("/nocache/:name")
+                .route(RequestPredicates.GET("/nocache/{name}")
                         .and(RequestPredicates.accept(MediaType.APPLICATION_JSON)),
                             personHandler::fetchNoCache)
                 .andRoute(RequestPredicates.GET("/withcache/{name}")
