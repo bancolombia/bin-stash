@@ -55,24 +55,24 @@ subprojects {
 
     dependencies {
 
-        testImplementation(platform('org.junit:junit-bom:5.7.0'))
+        testImplementation(platform('org.junit:junit-bom:5.10.2'))
 
         implementation 'io.projectreactor:reactor-core'
-        compileOnly 'org.projectlombok:lombok:1.18.28'
-        annotationProcessor 'org.projectlombok:lombok:1.18.28'
-        testCompileOnly 'org.projectlombok:lombok:1.18.28'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
+        compileOnly 'org.projectlombok:lombok:1.18.30'
+        annotationProcessor 'org.projectlombok:lombok:1.18.30'
+        testCompileOnly 'org.projectlombok:lombok:1.18.30'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
         testImplementation 'io.projectreactor:reactor-test'
 
         testImplementation('org.junit.jupiter:junit-jupiter')
-        testImplementation 'org.mockito:mockito-inline:3.7.7'
-        testImplementation 'org.mockito:mockito-junit-jupiter:3.7.7'
+        testImplementation 'org.mockito:mockito-inline:5.2.0'
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.10.0'
     }
 
     configurations.configureEach {
         resolutionStrategy.eachDependency { DependencyResolveDetails details ->
             if (details.requested.group == 'org.apache.logging.log4j') {
-                details.useVersion '2.20.0'
+                details.useVersion '2.23.0'
             }
         }
     }
