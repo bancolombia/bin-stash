@@ -23,7 +23,7 @@ class CentralizedCacheConfigTest {
     }
 
     @AfterAll
-    static void clean() {
+    static void clean() throws IOException {
         redisServer.stop();
     }
 
