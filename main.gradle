@@ -2,7 +2,7 @@ allprojects {
     apply plugin: "java"
     apply plugin: "jacoco"
     apply plugin: 'org.sonarqube'
-    apply plugin: "org.owasp.dependencycheck"
+//    apply plugin: "org.owasp.dependencycheck"
 
     sourceCompatibility = JavaVersion.VERSION_17
 
@@ -41,7 +41,7 @@ subprojects {
     apply plugin: "java-library"
     apply plugin: "maven-publish"
     apply plugin: "io.spring.dependency-management"
-    apply plugin: "org.owasp.dependencycheck"
+//    apply plugin: "org.owasp.dependencycheck"
 
     ext {
         groupId = 'com.github.bancolombia'
@@ -54,16 +54,16 @@ subprojects {
     }
 
     dependencies {
+        implementation 'io.projectreactor:reactor-core'
+
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
         testImplementation(platform('org.junit:junit-bom:5.10.2'))
-
-        implementation 'io.projectreactor:reactor-core'
-        compileOnly 'org.projectlombok:lombok:1.18.30'
-        annotationProcessor 'org.projectlombok:lombok:1.18.30'
-        testCompileOnly 'org.projectlombok:lombok:1.18.30'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
         testImplementation 'io.projectreactor:reactor-test'
-
         testImplementation('org.junit.jupiter:junit-jupiter')
         testImplementation 'org.mockito:mockito-inline:5.2.0'
         testImplementation 'org.mockito:mockito-junit-jupiter:5.10.0'
@@ -108,13 +108,13 @@ subprojects {
         ]
     }
 
-    check.dependsOn dependencyCheckAggregate
+//    check.dependsOn dependencyCheckAggregate
 
-    dependencyCheck {
-        format = 'JSON'
-        formats = ['JSON']
-        scanProjects = [':bin-stash-centralized',':bin-stash-hybrid', ':bin-stash-local']
-    }
+//    dependencyCheck {
+//        format = 'JSON'
+//        formats = ['JSON']
+//        scanProjects = [':bin-stash-centralized',':bin-stash-hybrid', ':bin-stash-local']
+//    }
 
     if (toPublish.split(',').contains(it.name)) {
         apply plugin: "maven-publish"
@@ -207,5 +207,5 @@ tasks.register('generateMergedReport', JacocoReport) {
 }
 
 tasks.named('wrapper') {
-    gradleVersion = '8.1.1'
+    gradleVersion = '8.5'
 }

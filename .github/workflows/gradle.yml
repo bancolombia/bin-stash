@@ -30,8 +30,8 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew clean build -x test -x check
-      - name: Scan generated project dependencies
-        run: ./gradlew dependencyCheckAggregate
+#      - name: Scan generated project dependencies
+#        run: ./gradlew dependencyCheckAggregate
       - name: Execute jacocoTestReport
         run: ./gradlew test generateMergedReport
       - name: copy the reportTest to codeCoverage

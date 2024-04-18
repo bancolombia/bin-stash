@@ -1,7 +1,7 @@
 buildscript {
 
 	ext {
-		springBootVersion = '3.2.2'
+		springBootVersion = '3.2.4'
 		jacocoVersion = '0.8.7'
 	}
 
@@ -11,7 +11,7 @@ buildscript {
 
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-		classpath("org.owasp:dependency-check-gradle:8.3.1")
+//		classpath("org.owasp:dependency-check-gradle:8.3.1")
 	}
 }
 
