@@ -37,11 +37,11 @@ jobs:
         uses: github-actions-x/commit@v2.9
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
-          push-branch: "master" # Set the correct branch
-          commit-message: 'docs(version): Update version to ${{ env.RELEASE_VERSION }}' # Change RELEASE_VERSION by your own or none
+          push-branch: "master"
+          commit-message: 'docs(version): Update version to ${{ env.RELEASE_VERSION }} [skip ci]'
           force-add: "true"
           force-push: "true"
-          files: CHANGELOG.md gradle.properties  # List of changed files
+          files: CHANGELOG.md gradle.properties
           name: Release Bot
           email: release-bot@bancolombia.com.co
 
