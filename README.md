@@ -21,7 +21,7 @@ For local cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-local:<>'
+    implementation 'com.github.bancolombia:bin-stash-local:<version>'
 }
 ```
 
@@ -29,7 +29,7 @@ For a centralized (redis) cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-centralized:1.2.3'
+    implementation 'com.github.bancolombia:bin-stash-centralized:<version>'
 }
 ```
 
@@ -37,7 +37,7 @@ For an hybrid (local and centralized) cache
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-hybrid:1.2.3'
+    implementation 'com.github.bancolombia:bin-stash-hybrid:<version>'
 }
 ```
 
