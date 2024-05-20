@@ -1,5 +1,19 @@
 # Changelog
 
+## [v1.2.6](https://github.com/bancolombia/bin-stash/tree/v1.2.6) (2024-05-20)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.2.5...v1.2.6)
+
+**Closed issues:**
+
+- implement a semantic versioning and automatic semantic release  [\#27](https://github.com/bancolombia/bin-stash/issues/27)
+- Add CHANGELOG.md generation [\#26](https://github.com/bancolombia/bin-stash/issues/26)
+
+**Merged pull requests:**
+
+- fix\(updater\): Add dependency updater [\#30](https://github.com/bancolombia/bin-stash/pull/30) ([juancgalvis](https://github.com/juancgalvis))
+- ci\(conditions\): Add commit with github app and skip condition when automatic release [\#29](https://github.com/bancolombia/bin-stash/pull/29) ([juancgalvis](https://github.com/juancgalvis))
+
 ## [v1.2.5](https://github.com/bancolombia/bin-stash/tree/v1.2.5) (2024-05-03)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.2.4...v1.2.5)
