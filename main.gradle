@@ -1,8 +1,8 @@
 allprojects {
-    apply plugin: "java"
-    apply plugin: "jacoco"
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
     apply plugin: 'org.sonarqube'
-//    apply plugin: "org.owasp.dependencycheck"
+    apply plugin: 'org.owasp.dependencycheck'
 
     sourceCompatibility = JavaVersion.VERSION_17
 
@@ -38,33 +38,26 @@ nexusPublishing {
 
 subprojects {
 
-    apply plugin: "java-library"
-    apply plugin: "maven-publish"
-    apply plugin: "io.spring.dependency-management"
-//    apply plugin: "org.owasp.dependencycheck"
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+    apply plugin: 'io.spring.dependency-management'
 
     ext {
         groupId = 'com.github.bancolombia'
     }
 
-    group groupId
-
-    repositories {
-        mavenCentral()
-    }
-
     dependencies {
         implementation 'io.projectreactor:reactor-core'
 
-        compileOnly "org.projectlombok:lombok:${lombokVersion}"
-        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        compileOnly "org.projectlombok:lombok:1.18.32"
+        annotationProcessor "org.projectlombok:lombok:1.18.32"
 
-        testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
-        testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+        testCompileOnly "org.projectlombok:lombok:1.18.32"
+        testAnnotationProcessor "org.projectlombok:lombok:1.18.32"
 
-        testImplementation(platform('org.junit:junit-bom:5.10.2'))
+        testImplementation platform('org.junit:junit-bom:5.10.2')
         testImplementation 'io.projectreactor:reactor-test'
-        testImplementation('org.junit.jupiter:junit-jupiter')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'org.mockito:mockito-inline:5.2.0'
         testImplementation 'org.mockito:mockito-junit-jupiter:5.10.0'
     }
@@ -79,7 +72,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+            mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.4"
         }
     }
 
@@ -96,47 +89,35 @@ subprojects {
         dependsOn test
         reports {
             xml.setRequired true
-            xml.setOutputLocation file("${buildDir}/reports/jacoco.xml")
+            xml.setOutputLocation layout.buildDirectory.file("reports/jacoco.xml")
             csv.setRequired false
-            html.setOutputLocation file("${buildDir}/reports/jacocoHtml")
+            html.setOutputLocation layout.buildDirectory.dir("reports/jacocoHtml")
         }
-    }
-    compileJava {
-        options.compilerArgs = [
-                '-Amapstruct.suppressGeneratorTimestamp=true',
-                '-Amapstruct.suppressGeneratorVersionInfoComment=true'
-        ]
     }
 
 //    check.dependsOn dependencyCheckAggregate
 
-//    dependencyCheck {
-//        format = 'JSON'
-//        formats = ['JSON']
-//        scanProjects = [':bin-stash-centralized',':bin-stash-hybrid', ':bin-stash-local']
-//    }
+    dependencyCheck {
+        format = 'JSON'
+        formats = ['JSON']
+        scanProjects = [':bin-stash-centralized',':bin-stash-hybrid', ':bin-stash-local']
+    }
 
     if (toPublish.split(',').contains(it.name)) {
         apply plugin: "maven-publish"
         apply plugin: "signing"
 
-        tasks.register('sourcesJar', Jar) {
-            dependsOn classes
-            archiveClassifier = 'sources'
-            from sourceSets.main.allSource
+        java {
+            withJavadocJar()
+            withSourcesJar()
         }
 
+        javadoc {
+            if (JavaVersion.current().isJava9Compatible()) {
+                options.addBooleanOption('html5', true)
+            }
+        }
         javadoc.failOnError = false
-        tasks.register('javadocJar', Jar) {
-            dependsOn javadoc
-            archiveClassifier = 'javadoc'
-            from javadoc.destinationDir
-        }
-
-        artifacts {
-            archives sourcesJar
-            archives javadocJar
-        }
 
         tasks.withType(GenerateModuleMetadata).configureEach {
             enabled = false
@@ -165,14 +146,11 @@ subprojects {
                             }
                         }
                         scm {
-                            url ="git@github.com:bancolombia/bin-stash.git"
+                            url = "git@github.com:bancolombia/bin-stash.git"
                         }
                     }
 
                     from components.java
-
-                    artifact sourcesJar
-                    artifact javadocJar
 
                     groupId = groupId
                     artifactId = artifactId

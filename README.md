@@ -1,10 +1,12 @@
 # Bin-Stash 
 
+![Maven Central Version](https://img.shields.io/maven-central/v/com.github.bancolombia/bin-stash-local)
 ![](https://github.com/bancolombia/bin-stash/workflows/Java%20CI%20with%20Gradle/badge.svg)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bancolombia_bin-stash&metric=alert_status)](https://sonarcloud.io/dashboard?id=bancolombia_bin-stash)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=bancolombia_bin-stash&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=bancolombia_bin-stash)
-[![codecov](https://codecov.io/gh/bancolombia/bin-stash/branch/master/graph/badge.svg)](https://codecov.io/gh/bancolombia/bin-stash)
+![Sonar Coverage](https://img.shields.io/sonar/coverage/bancolombia_bin-stash?server=https%3A%2F%2Fsonarcloud.io)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/bancolombia/bin-stash/blob/master/LICENSE)
+[![Scorecards supply-chain security](https://github.com/bancolombia/bin-stash/actions/workflows/scorecards-analysis.yml/badge.svg)](https://github.com/bancolombia/bin-stash/actions/workflows/scorecards-analysis.yml)
 
 Library for caching data:
 
@@ -19,7 +21,7 @@ For local cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-local:1.2.3'
+    implementation 'com.github.bancolombia:bin-stash-local:<version>'
 }
 ```
 
@@ -27,7 +29,7 @@ For a centralized (redis) cache only
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-centralized:1.2.3'
+    implementation 'com.github.bancolombia:bin-stash-centralized:<version>'
 }
 ```
 
@@ -35,7 +37,7 @@ For an hybrid (local and centralized) cache
 
 ```gradle
 dependencies {
-    implementation 'com.github.bancolombia:bin-stash-hybrid:1.2.3'
+    implementation 'com.github.bancolombia:bin-stash-hybrid:<version>'
 }
 ```
 
