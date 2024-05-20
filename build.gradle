@@ -2,11 +2,6 @@ buildscript {
 	repositories {
 		mavenCentral()
 	}
-
-//	dependencies {
-//		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-////		classpath("org.owasp:dependency-check-gradle:8.3.1")
-//	}
 }
 
 plugins {
@@ -15,7 +10,7 @@ plugins {
 	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
 	id 'org.springframework.boot' version '3.2.5' apply false
 	id 'org.owasp.dependencycheck' version '9.1.0' apply false
-	id 'co.com.bancolombia.cleanArchitecture' version '3.17.1'
+	id 'co.com.bancolombia.cleanArchitecture' version '3.17.3'
 }
 
 apply from: './main.gradle'
