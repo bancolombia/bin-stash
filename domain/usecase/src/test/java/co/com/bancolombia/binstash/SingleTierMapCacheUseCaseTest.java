@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -190,6 +191,37 @@ class SingleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(mockedStash).keySet();
+    }
+
+
+    @Test
+    @DisplayName("Should get keys")
+    void testKeys() {
+
+        when(mockedStash.keys(anyString(), anyInt())).thenReturn(Flux.just("key1", "key2"));
+
+        StepVerifier.create(cache.keys("k*", 2))
+                .expectSubscription()
+                .expectNext("key1")
+                .expectNext("key2")
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).keys("k*", 2);
+    }
+
+    @Test
+    @DisplayName("Should not get keys")
+    void testKeysEmpty() {
+
+        when(mockedStash.keys(anyString(), anyInt())).thenReturn(Flux.empty());
+
+        StepVerifier.create(cache.keys("k*", 2))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).keys("k*", 2);
     }
 
 

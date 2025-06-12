@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -72,8 +73,6 @@ class DoubleTierMapCacheUseCaseTest {
     void testSave2() {
 
         when(localCache.saveMap(anyString(), any(Map.class), anyInt())).thenReturn(Mono.just(demoMap));
-//        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-//        when(centralizedCache.existsMap(anyString())).thenReturn(Mono.just(true));
 
         StepVerifier.create(cache.saveMap("pparker", demoMap))
                 .expectSubscription()
@@ -82,7 +81,6 @@ class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(localCache).saveMap("pparker", demoMap, -1);
-//        verify(centralizedCache, timeout(2000).times(0)).saveMap("pparker", demoMap);
     }
 
     @SneakyThrows
@@ -160,6 +158,22 @@ class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(centralizedCache, times(0)).keySet();
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Get keys")
+    void testKeys() {
+
+        when(localCache.keys(anyString(), anyInt())).thenReturn(Flux.fromStream(demoMap.keySet().stream()));
+
+        StepVerifier.create(cache.keys("*", 10))
+                .expectSubscription()
+                .expectNextCount(2)
+                .expectComplete()
+                .verify();
+
+        verify(centralizedCache, times(0)).keys(anyString(), anyInt());
     }
 
     @SneakyThrows

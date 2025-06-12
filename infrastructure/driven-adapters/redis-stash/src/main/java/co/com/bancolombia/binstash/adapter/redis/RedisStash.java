@@ -3,9 +3,11 @@ package co.com.bancolombia.binstash.adapter.redis;
 import co.com.bancolombia.binstash.model.InvalidKeyException;
 import co.com.bancolombia.binstash.model.api.Stash;
 import io.lettuce.core.KeyValue;
+import io.lettuce.core.ScanArgs;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import org.apache.commons.lang3.StringUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
@@ -15,6 +17,9 @@ import java.util.Set;
 public class RedisStash implements Stash {
 
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
+    private static final String INVALID_PATTERN_MSG = "Invalid pattern for keys";
+    private static final String INVALID_LIMIT_MSG = "Limit must be greater than zero";
+
     private static final int DEFAULT_PER_KEY_EXPIRATION_SECONDS = 300;
 
     private final RedisReactiveCommands<String, String> redisReactiveCommands;
@@ -55,6 +60,18 @@ public class RedisStash implements Stash {
     public Mono<Set<String>> keySet() {
         return redisReactiveCommands.keys("*").collectList()
                 .map(HashSet::new);
+    }
+
+    @Override
+    public Flux<String> keys(String pattern, int limit) {
+        if (StringUtils.isBlank(pattern)) {
+            return Flux.error(new IllegalArgumentException(INVALID_PATTERN_MSG));
+        }
+        if (limit <= 0) {
+            return Flux.error(new IllegalArgumentException(INVALID_LIMIT_MSG));
+        }
+        return redisReactiveCommands.scan(new ScanArgs().limit(limit).match(pattern))
+                .flatMapMany(scanResult -> Flux.fromIterable(scanResult.getKeys()));
     }
 
     @Override

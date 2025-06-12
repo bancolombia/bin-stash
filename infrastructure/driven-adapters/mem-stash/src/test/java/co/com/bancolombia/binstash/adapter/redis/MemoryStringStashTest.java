@@ -5,12 +5,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -186,6 +188,44 @@ class MemoryStringStashTest {
                 .then(stash.save(TEST_KEY+"b", TEST_VALUE))
                 .then(stash.evictAll())
                 .then(stash.get(TEST_KEY));
+
+        StepVerifier.create(op)
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should allow get all keys")
+    void testGetKeys() {
+        Mono<Set<String>> op = stash.save(TEST_KEY, TEST_VALUE)
+                        .then(stash.keySet());
+
+        StepVerifier.create(op)
+                .expectSubscription()
+                .expectNext(Set.of(TEST_KEY))
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should allow get keys given a pattern")
+    void testGetKeysPattern() {
+        stash.save(TEST_KEY, TEST_VALUE).subscribe();
+        Flux<String> op = stash.keys("*", 1);
+
+        StepVerifier.create(op)
+                .expectSubscription()
+                .expectNext(TEST_KEY)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should not get keys given a pattern")
+    void testGetKeysPatternMiss() {
+        stash.save(TEST_KEY, TEST_VALUE).subscribe();
+        Flux<String> op = stash.keys("foo*", 1);
 
         StepVerifier.create(op)
                 .expectSubscription()

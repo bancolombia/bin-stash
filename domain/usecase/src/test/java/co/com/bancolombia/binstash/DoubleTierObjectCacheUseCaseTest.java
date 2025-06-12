@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -224,7 +225,7 @@ class DoubleTierObjectCacheUseCaseTest {
 
     @Test
     @DisplayName("Get keyset from local")
-    void testShoulGetKeyset() {
+    void testShouldGetKeyset() {
 
         when(memStash.keySet()).thenReturn(Mono.just(Set.of("pparker")));
 
@@ -235,6 +236,21 @@ class DoubleTierObjectCacheUseCaseTest {
                 .verify();
 
         verify(memStash).keySet();
+    }
+
+    @Test
+    @DisplayName("Get keys from local")
+    void testShouldGetKeys() {
+
+        when(memStash.keys(anyString(), anyInt())).thenReturn(Flux.just("pparker"));
+
+        StepVerifier.create(cache.keys("pp*", 1))
+                .expectSubscription()
+                .expectNext("pparker")
+                .expectComplete()
+                .verify();
+
+        verify(memStash).keys("pp*", 1);
     }
 
     @Test
@@ -259,8 +275,6 @@ class DoubleTierObjectCacheUseCaseTest {
     @DisplayName("evict key in local cache then @ centralized")
     void testEvictDobleTier() {
         when(memStash.evict(anyString())).thenReturn(Mono.just(true));
-//        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-//        when(redisStash.evict(anyString())).thenReturn(Mono.just(true));
 
         StepVerifier.create(cache.evict("pparker"))
                 .expectSubscription()
@@ -271,7 +285,6 @@ class DoubleTierObjectCacheUseCaseTest {
                 .hasNotDroppedElements();
 
         verify(memStash).evict("pparker");
-//        verify(redisStash, timeout(1000)).evict("pparker");
     }
 
     @Test

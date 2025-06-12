@@ -1,6 +1,7 @@
 package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.model.api.MapCache;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -106,6 +107,11 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Set<String>> keySet() {
         return localCache.keySet();
+    }
+
+    @Override
+    public Flux<String> keys(String pattern, int limit) {
+        return localCache.keys(pattern, limit);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package co.com.bancolombia.binstash.model.api;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
@@ -56,6 +57,14 @@ public interface ObjectCache<T> {
      * @return a Mono containing a Set of strings mapping each key that exists in cache.
      */
     Mono<Set<String>> keySet();
+
+    /**
+     * Gets a set of keys currently stored that match a given a pattern.
+     * @param pattern pattern to match keys against
+     * @param limit maximum number of keys to return
+     * @return Set o f keys
+     */
+    Flux<String> keys(String pattern, int limit);
 
     /**
      * Evicts a key-value stored in cache

@@ -2,6 +2,7 @@ package co.com.bancolombia.binstash.adapter.redis;
 
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import redis.embedded.RedisServer;
@@ -150,6 +151,35 @@ class RedisStashTest {
                 .expectComplete()
                 .verify();
 
+    }
+
+    @Test
+    @DisplayName("Should get keys given a pattern")
+    void testKeysSearch() {
+
+        stash.save("key2", TEST_VALUE).subscribe();
+
+        Flux<String> k = stash.keys("k*", 10);
+
+        StepVerifier.create(k)
+                .expectSubscription()
+                .expectNext("key2")
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should now get keys given a pattern")
+    void testKeysSearchEmpty() {
+
+        stash.save("key2", TEST_VALUE).subscribe();
+
+        Flux<String> k = stash.keys("foo*", 10);
+
+        StepVerifier.create(k)
+                .expectSubscription()
+                .expectComplete()
+                .verify();
     }
 
     @Test

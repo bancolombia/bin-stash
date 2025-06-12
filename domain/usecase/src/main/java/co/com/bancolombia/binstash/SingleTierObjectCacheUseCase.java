@@ -6,6 +6,7 @@ import co.com.bancolombia.binstash.model.api.StringStash;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
@@ -57,6 +58,11 @@ public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
     @Override
     public Mono<Set<String>> keySet() {
         return cache.keySet();
+    }
+
+    @Override
+    public Flux<String> keys(String pattern, int limit) {
+        return cache.keys(pattern, limit);
     }
 
     @Override
