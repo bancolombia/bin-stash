@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased](https://github.com/bancolombia/bin-stash/tree/HEAD)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.0...HEAD)
+
+**Closed issues:**
+
+- Support for Redis SCAN command [\#32](https://github.com/bancolombia/bin-stash/issues/32)
+
+## [v1.3.0](https://github.com/bancolombia/bin-stash/tree/v1.3.0) (2025-06-12)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.2.6...v1.3.0)
+
+**Merged pull requests:**
+
+- feat: Added a method to get keys from repository using pattern and limit. [\#33](https://github.com/bancolombia/bin-stash/pull/33) ([gabheadz](https://github.com/gabheadz))
+- build\(conditions\): Use github app only with main branch [\#31](https://github.com/bancolombia/bin-stash/pull/31) ([juancgalvis](https://github.com/juancgalvis))
+
 ## [v1.2.6](https://github.com/bancolombia/bin-stash/tree/v1.2.6) (2024-05-20)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.2.5...v1.2.6)
