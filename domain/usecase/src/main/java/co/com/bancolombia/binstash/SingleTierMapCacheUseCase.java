@@ -4,6 +4,7 @@ import co.com.bancolombia.binstash.model.api.HashStash;
 import co.com.bancolombia.binstash.model.api.MapCache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -58,6 +59,11 @@ public class SingleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Set<String>> keySet() {
         return stash.keySet();
+    }
+
+    @Override
+    public Flux<String> keys(String pattern, int limit) {
+        return stash.keys(pattern, limit);
     }
 
     @Override

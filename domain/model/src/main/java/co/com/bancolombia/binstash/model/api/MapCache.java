@@ -1,5 +1,6 @@
 package co.com.bancolombia.binstash.model.api;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -87,6 +88,14 @@ public interface MapCache {
      * @return a set of all keys.
      */
     Mono<Set<String>> keySet();
+
+    /**
+     * Gets a set of keys currently stored that match a given a pattern.
+     * @param pattern pattern to match keys against
+     * @param limit maximum number of keys to return
+     * @return Set o f keys
+     */
+    Flux<String> keys(String pattern, int limit);
 
     /**
      * Removes a map identified by key, effectively removing all field-value pairs.

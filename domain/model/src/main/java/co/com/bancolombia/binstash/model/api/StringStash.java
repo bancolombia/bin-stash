@@ -1,5 +1,6 @@
 package co.com.bancolombia.binstash.model.api;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
@@ -38,6 +39,14 @@ public interface StringStash {
      * @return Set o f keys
      */
     Mono<Set<String>> keySet();
+
+    /**
+     * Gets a set of keys currently stored that match a given a pattern.
+     * @param pattern pattern to match keys against
+     * @param limit maximum number of keys to return
+     * @return Set o f keys
+     */
+    Flux<String> keys(String pattern, int limit);
 
     /**
      * Checks if a given key exists in the repository
