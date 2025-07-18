@@ -1,12 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/bancolombia/bin-stash/tree/HEAD)
+## [v1.3.1](https://github.com/bancolombia/bin-stash/tree/v1.3.1) (2025-07-18)
 
-[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.0...HEAD)
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.0...v1.3.1)
 
 **Closed issues:**
 
 - Support for Redis SCAN command [\#32](https://github.com/bancolombia/bin-stash/issues/32)
+
+**Merged pull requests:**
+
+- fix\(release\): Update release properties [\#34](https://github.com/bancolombia/bin-stash/pull/34) ([juancgalvis](https://github.com/juancgalvis))
 
 ## [v1.3.0](https://github.com/bancolombia/bin-stash/tree/v1.3.0) (2025-06-12)
 
