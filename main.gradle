@@ -32,7 +32,10 @@ allprojects {
 
 nexusPublishing {
     repositories {
-        sonatype()
+        sonatype {
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+        }
     }
 }
 
@@ -49,30 +52,22 @@ subprojects {
     dependencies {
         implementation 'io.projectreactor:reactor-core'
 
-        compileOnly "org.projectlombok:lombok:1.18.32"
-        annotationProcessor "org.projectlombok:lombok:1.18.32"
+        compileOnly "org.projectlombok:lombok:1.18.38"
+        annotationProcessor "org.projectlombok:lombok:1.18.38"
 
-        testCompileOnly "org.projectlombok:lombok:1.18.32"
-        testAnnotationProcessor "org.projectlombok:lombok:1.18.32"
+        testCompileOnly "org.projectlombok:lombok:1.18.38"
+        testAnnotationProcessor "org.projectlombok:lombok:1.18.38"
 
-        testImplementation platform('org.junit:junit-bom:5.10.2')
+        testImplementation platform('org.junit:junit-bom:5.13.0')
         testImplementation 'io.projectreactor:reactor-test'
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testImplementation 'org.mockito:mockito-inline:5.2.0'
-        testImplementation 'org.mockito:mockito-junit-jupiter:5.10.0'
-    }
-
-    configurations.configureEach {
-        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-            if (details.requested.group == 'org.apache.logging.log4j') {
-                details.useVersion '2.23.0'
-            }
-        }
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.18.0'
     }
 
     dependencyManagement {
         imports {
-            mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.4"
+            mavenBom "org.springframework.boot:spring-boot-dependencies:3.5.3"
         }
     }
 
@@ -100,7 +95,7 @@ subprojects {
     dependencyCheck {
         format = 'JSON'
         formats = ['JSON']
-        scanProjects = [':bin-stash-centralized',':bin-stash-hybrid', ':bin-stash-local']
+        scanProjects = [':bin-stash-centralized', ':bin-stash-hybrid', ':bin-stash-local']
     }
 
     if (toPublish.split(',').contains(it.name)) {
@@ -185,5 +180,5 @@ tasks.register('generateMergedReport', JacocoReport) {
 }
 
 tasks.named('wrapper') {
-    gradleVersion = '8.5'
+    gradleVersion = '8.14.3'
 }
