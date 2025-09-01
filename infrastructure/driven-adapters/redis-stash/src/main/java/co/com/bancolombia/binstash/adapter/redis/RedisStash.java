@@ -4,10 +4,12 @@ import co.com.bancolombia.binstash.model.InvalidKeyException;
 import co.com.bancolombia.binstash.model.api.Stash;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
@@ -18,7 +20,6 @@ public class RedisStash implements Stash {
 
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
     private static final String INVALID_PATTERN_MSG = "Invalid pattern for keys";
-    private static final String INVALID_LIMIT_MSG = "Limit must be greater than zero";
 
     private static final int DEFAULT_PER_KEY_EXPIRATION_SECONDS = 300;
 
@@ -67,11 +68,29 @@ public class RedisStash implements Stash {
         if (StringUtils.isBlank(pattern)) {
             return Flux.error(new IllegalArgumentException(INVALID_PATTERN_MSG));
         }
-        if (limit <= 0) {
-            return Flux.error(new IllegalArgumentException(INVALID_LIMIT_MSG));
-        }
-        return redisReactiveCommands.scan(new ScanArgs().limit(limit).match(pattern))
-                .flatMapMany(scanResult -> Flux.fromIterable(scanResult.getKeys()));
+        return Flux.create(sink -> {
+            final ScanArgs scanArgs = new ScanArgs().match(pattern).limit(limit <= 0 ? Long.MAX_VALUE : limit);
+            final int[] emitted = {0};
+            // Recursive scan function
+            scanRecursive("0", scanArgs, sink, emitted, limit);
+        });
+    }
+
+    private void scanRecursive(String cursor, ScanArgs scanArgs, FluxSink<String> sink, int[] emitted, int limit) {
+        redisReactiveCommands.scan(ScanCursor.of(cursor), scanArgs)
+            .doOnNext(scanResult -> {
+                scanResult.getKeys().forEach(k -> {
+                    sink.next(k);
+                    emitted[0]++;
+                });
+                if (!scanResult.isFinished() && emitted[0] < limit) {
+                    scanRecursive(scanResult.getCursor(), scanArgs, sink, emitted, limit);
+                } else {
+                    sink.complete();
+                }
+            })
+            .subscribe();
+
     }
 
     @Override

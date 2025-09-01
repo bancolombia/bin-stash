@@ -8,9 +8,7 @@ import reactor.test.StepVerifier;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -157,13 +155,28 @@ class RedisStashTest {
     @DisplayName("Should get keys given a pattern")
     void testKeysSearch() {
 
+        stash.save("key1", TEST_VALUE).subscribe();
         stash.save("key2", TEST_VALUE).subscribe();
+        stash.save("key3", TEST_VALUE).subscribe();
+        stash.save("key4", TEST_VALUE).subscribe();
+        stash.save("key5", TEST_VALUE).subscribe();
+        stash.save("key6", TEST_VALUE).subscribe();
+        stash.save("key7", TEST_VALUE).subscribe();
+        stash.save("key8", TEST_VALUE).subscribe();
+        stash.save("key9", TEST_VALUE).subscribe();
+        stash.save("key10", TEST_VALUE).subscribe();
+        stash.save("key11", TEST_VALUE).subscribe();
+        stash.save("key12", TEST_VALUE).subscribe();
+        stash.save("key13", TEST_VALUE).subscribe();
+        stash.save("key14", TEST_VALUE).subscribe();
+        stash.save("key15", TEST_VALUE).subscribe();
+        stash.save("foo1", "bar1").subscribe();
 
-        Flux<String> k = stash.keys("k*", 10);
+        Flux<String> k = stash.keys("k*", 0);
 
         StepVerifier.create(k)
                 .expectSubscription()
-                .expectNext("key2")
+                .expectNextCount(15)
                 .expectComplete()
                 .verify();
     }
