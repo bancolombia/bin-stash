@@ -174,8 +174,14 @@ class RedisStashTest {
         stash.save("key15", TEST_VALUE).subscribe();
         stash.save("foo1", "bar1").subscribe();
 
-        Flux<String> unboundedKeys = stash.keys("k*", -1);
+        Mono<List<String>> cappedKeys = stash.keys("k*", 5).collectList();
+        StepVerifier.create(cappedKeys)
+                .expectSubscription()
+                .expectNextMatches(ks -> ks.size() < 15)
+                .expectComplete()
+                .verify();
 
+        Flux<String> unboundedKeys = stash.keys("k*", -1);
         StepVerifier.create(unboundedKeys)
                 .expectSubscription()
                 .expectNextCount(15)
@@ -183,7 +189,6 @@ class RedisStashTest {
                 .verify();
 
         Flux<String> noKeys = stash.keys("acme*", -1);
-
         StepVerifier.create(noKeys)
                 .expectSubscription()
                 .expectComplete()
