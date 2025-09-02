@@ -80,7 +80,7 @@ public class RedisStash implements Stash {
                             List<String> keys = scanResult.getKeys();
                             emitted[0] += keys.size();
                             Flux<String> currentBatch = Flux.fromIterable(keys);
-                            if (scanResult.isFinished() || emitted[0] <= limit) {
+                            if (scanResult.isFinished() || emitted[0] >= limit) {
                                 return currentBatch;
                             }
                             return currentBatch.concatWith(
