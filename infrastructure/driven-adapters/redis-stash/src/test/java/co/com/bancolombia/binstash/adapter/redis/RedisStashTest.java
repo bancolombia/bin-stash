@@ -2,6 +2,7 @@ package co.com.bancolombia.binstash.adapter.redis;
 
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @Log
 class RedisStashTest {
@@ -172,12 +174,34 @@ class RedisStashTest {
         stash.save("key15", TEST_VALUE).subscribe();
         stash.save("foo1", "bar1").subscribe();
 
-        Flux<String> k = stash.keys("k*", 0);
+        Flux<String> unboundedKeys = stash.keys("k*", -1);
 
-        StepVerifier.create(k)
+        StepVerifier.create(unboundedKeys)
                 .expectSubscription()
                 .expectNextCount(15)
                 .expectComplete()
+                .verify();
+
+        Flux<String> noKeys = stash.keys("acme*", -1);
+
+        StepVerifier.create(noKeys)
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle error when scanning keys")
+    void testKeysSearchWithError() {
+
+        RedisStash mockedStash = Mockito.mock(RedisStash.class);
+        when(mockedStash.keys(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn(Flux.error(new RuntimeException("Scan error")));
+
+        Flux<String> k = mockedStash.keys("k*", 0);
+
+        StepVerifier.create(k)
+                .expectErrorMessage("Scan error")
                 .verify();
     }
 
