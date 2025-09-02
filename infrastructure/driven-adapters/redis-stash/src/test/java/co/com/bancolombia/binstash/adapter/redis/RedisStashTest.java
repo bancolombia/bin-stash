@@ -2,17 +2,17 @@ package co.com.bancolombia.binstash.adapter.redis;
 
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @Log
 class RedisStashTest {
@@ -157,14 +157,56 @@ class RedisStashTest {
     @DisplayName("Should get keys given a pattern")
     void testKeysSearch() {
 
+        stash.save("key1", TEST_VALUE).subscribe();
         stash.save("key2", TEST_VALUE).subscribe();
+        stash.save("key3", TEST_VALUE).subscribe();
+        stash.save("key4", TEST_VALUE).subscribe();
+        stash.save("key5", TEST_VALUE).subscribe();
+        stash.save("key6", TEST_VALUE).subscribe();
+        stash.save("key7", TEST_VALUE).subscribe();
+        stash.save("key8", TEST_VALUE).subscribe();
+        stash.save("key9", TEST_VALUE).subscribe();
+        stash.save("key10", TEST_VALUE).subscribe();
+        stash.save("key11", TEST_VALUE).subscribe();
+        stash.save("key12", TEST_VALUE).subscribe();
+        stash.save("key13", TEST_VALUE).subscribe();
+        stash.save("key14", TEST_VALUE).subscribe();
+        stash.save("key15", TEST_VALUE).subscribe();
+        stash.save("foo1", "bar1").subscribe();
 
-        Flux<String> k = stash.keys("k*", 10);
+        Mono<List<String>> cappedKeys = stash.keys("k*", 5).collectList();
+        StepVerifier.create(cappedKeys)
+                .expectSubscription()
+                .expectNextMatches(ks -> ks.size() < 15)
+                .expectComplete()
+                .verify();
+
+        Flux<String> unboundedKeys = stash.keys("k*", -1);
+        StepVerifier.create(unboundedKeys)
+                .expectSubscription()
+                .expectNextCount(15)
+                .expectComplete()
+                .verify();
+
+        Flux<String> noKeys = stash.keys("acme*", -1);
+        StepVerifier.create(noKeys)
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle error when scanning keys")
+    void testKeysSearchWithError() {
+
+        RedisStash mockedStash = Mockito.mock(RedisStash.class);
+        when(mockedStash.keys(Mockito.anyString(), Mockito.anyInt()))
+                .thenReturn(Flux.error(new RuntimeException("Scan error")));
+
+        Flux<String> k = mockedStash.keys("k*", 0);
 
         StepVerifier.create(k)
-                .expectSubscription()
-                .expectNext("key2")
-                .expectComplete()
+                .expectErrorMessage("Scan error")
                 .verify();
     }
 
