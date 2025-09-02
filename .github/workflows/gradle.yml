@@ -24,17 +24,17 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
         uses: tibdex/github-app-token@v2
         with:
           app_id: ${{ secrets.APP_ID_ADMIN_GITHUB }}
           private_key: ${{ secrets.APP_PRIVATE_KEY_ADMIN_GITHUB }}
       - uses: actions/checkout@v4
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
         with:
           token: ${{ steps.generate_token.outputs.token }}
       - uses: actions/checkout@v4
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/master' && github.ref != 'refs/heads/beta'
 
       - name: Verify Conventional Commits
         uses: amannn/action-semantic-pull-request@v5
@@ -42,14 +42,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Set up NodeJS
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
       - name: Set up Semantic Release
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/beta'
         run: npm -g install @semantic-release/git semantic-release@23.0.0
-      - name: Semantic Release
+      - name: Semantic Release Master
         if: github.ref == 'refs/heads/master'
         run: npx semantic-release@23.0.0
         env:
@@ -79,4 +79,9 @@ jobs:
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Semantic Release Beta
+        if: github.ref == 'refs/heads/beta'
+        run: npx semantic-release@23.0.0
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
