@@ -43,7 +43,9 @@ public interface StringStash {
     /**
      * Gets a set of keys currently stored that match a given a pattern.
      * @param pattern pattern to match keys against
-     * @param limit maximum number of keys to return
+     * @param limit maximum number of keys to return. If equal or less than 0, no limit is applied.
+     *              The limit is a hint, and the actual number of keys returned could be more or less than the limit,
+     *              depending on the concrete service implementation or backend service (eg. Redis).
      * @return Set o f keys
      */
     Flux<String> keys(String pattern, int limit);

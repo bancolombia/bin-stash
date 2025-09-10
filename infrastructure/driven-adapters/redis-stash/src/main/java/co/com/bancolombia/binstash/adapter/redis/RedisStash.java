@@ -4,6 +4,7 @@ import co.com.bancolombia.binstash.model.InvalidKeyException;
 import co.com.bancolombia.binstash.model.api.Stash;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,7 +20,6 @@ public class RedisStash implements Stash {
 
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
     private static final String INVALID_PATTERN_MSG = "Invalid pattern for keys";
-    private static final String INVALID_LIMIT_MSG = "Limit must be greater than zero";
 
     private static final int DEFAULT_PER_KEY_EXPIRATION_SECONDS = 300;
 
@@ -67,11 +68,26 @@ public class RedisStash implements Stash {
         if (StringUtils.isBlank(pattern)) {
             return Flux.error(new IllegalArgumentException(INVALID_PATTERN_MSG));
         }
-        if (limit <= 0) {
-            return Flux.error(new IllegalArgumentException(INVALID_LIMIT_MSG));
-        }
-        return redisReactiveCommands.scan(new ScanArgs().limit(limit).match(pattern))
-                .flatMapMany(scanResult -> Flux.fromIterable(scanResult.getKeys()));
+        final ScanArgs scanArgs = new ScanArgs().match(pattern).limit(limit <= 0 ? Long.MAX_VALUE : limit);
+        final int[] emitted = {0};
+        return scanRecursive("0", scanArgs, emitted, limit);
+    }
+
+    private Flux<String> scanRecursive(String cursor, ScanArgs scanArgs, int[] emitted, int limit) {
+        return Flux.defer(() ->
+                redisReactiveCommands.scan(ScanCursor.of(cursor), scanArgs)
+                        .flatMapMany(scanResult -> {
+                            List<String> keys = scanResult.getKeys();
+                            emitted[0] += keys.size();
+                            Flux<String> currentBatch = Flux.fromIterable(keys);
+                            if (scanResult.isFinished() || emitted[0] >= limit) {
+                                return currentBatch;
+                            }
+                            return currentBatch.concatWith(
+                                    scanRecursive(scanResult.getCursor(), scanArgs, emitted, limit)
+                            );
+                        })
+        );
     }
 
     @Override

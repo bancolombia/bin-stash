@@ -112,13 +112,12 @@ public class MemoryStash implements Stash {
     public Flux<String> keys(String pattern, int limit) {
         long currentTime = System.currentTimeMillis();
         String curatedPattern = StringUtils.isBlank(pattern) ? ".*" : pattern.replace("*", ".*");
-        int curatedLimit = limit <= 0 ? Integer.MAX_VALUE : limit;
         return Flux.fromStream(() -> caffeineCache.asMap().entrySet()
                 .stream()
                 .filter(e -> !e.getValue().amIExpired(currentTime))
                 .filter(e -> e.getKey().matches(curatedPattern))
                 .map(Map.Entry::getKey)
-                .limit(curatedLimit)
+                .limit(limit <= 0 ? Integer.MAX_VALUE : limit)
         );
     }
 
