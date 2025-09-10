@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.3.2](https://github.com/bancolombia/bin-stash/tree/v1.3.2) (2025-09-10)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.2-beta.1...v1.3.2)
+
+**Merged pull requests:**
+
+- fix: improved key scanning method with recursive cursor processing [\#35](https://github.com/bancolombia/bin-stash/pull/35) ([gabheadz](https://github.com/gabheadz))
+
+## [v1.3.2-beta.1](https://github.com/bancolombia/bin-stash/tree/v1.3.2-beta.1) (2025-09-02)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.1...v1.3.2-beta.1)
+
 ## [v1.3.1](https://github.com/bancolombia/bin-stash/tree/v1.3.1) (2025-07-18)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.0...v1.3.1)
