@@ -3,7 +3,7 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.model.InvalidValueException;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
 import co.com.bancolombia.binstash.model.api.StringStash;
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import reactor.core.publisher.Flux;

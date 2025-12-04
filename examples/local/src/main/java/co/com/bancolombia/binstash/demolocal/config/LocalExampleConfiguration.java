@@ -7,7 +7,7 @@ import co.com.bancolombia.binstash.demolocal.handler.PersonHandler;
 import co.com.bancolombia.binstash.demolocal.model.Person;
 import co.com.bancolombia.binstash.demolocal.repository.PersonRepo;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;

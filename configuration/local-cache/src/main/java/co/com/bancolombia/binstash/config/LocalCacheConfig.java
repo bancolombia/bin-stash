@@ -2,7 +2,7 @@ package co.com.bancolombia.binstash.config;
 
 import co.com.bancolombia.binstash.LocalCacheFactory;
 import co.com.bancolombia.binstash.adapter.memory.MemoryStash;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

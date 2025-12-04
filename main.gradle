@@ -4,13 +4,18 @@ allprojects {
     apply plugin: 'org.sonarqube'
     apply plugin: 'org.owasp.dependencycheck'
 
-    sourceCompatibility = JavaVersion.VERSION_17
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
 
     repositories {
         mavenCentral()
     }
 
-    group 'com.github.bancolombia'
+    group = 'com.github.bancolombia'
 
     sonarqube {
         properties {
@@ -182,5 +187,5 @@ tasks.register('generateMergedReport', JacocoReport) {
 }
 
 tasks.named('wrapper') {
-    gradleVersion = '8.14.3'
+    gradleVersion = '9.2.1'
 }

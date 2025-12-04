@@ -3,7 +3,7 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.adapter.memory.MemoryStash;
 import co.com.bancolombia.binstash.model.api.MapCache;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

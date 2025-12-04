@@ -3,7 +3,7 @@ dependencies {
     implementation project(':bin-stash-memory')
     implementation 'org.springframework:spring-core'
     implementation 'org.springframework:spring-context'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'tools.jackson.core:jackson-databind:3.0.3'
     testImplementation 'org.springframework:spring-test'
 }
 

@@ -8,7 +8,8 @@ import co.com.bancolombia.binstash.HybridCacheFactory;
 import co.com.bancolombia.binstash.demohybrid.model.DummyRepo;
 import co.com.bancolombia.binstash.model.SyncRule;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ import java.util.List;
 public class HybridExampleConfiguration {
 
     @Bean
+    @Primary
     public DummyRepo dummyRepo() {
         return new PersonRepo();
     }

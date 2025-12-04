@@ -3,9 +3,9 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.demo.Address;
 import co.com.bancolombia.binstash.demo.Person;
 import co.com.bancolombia.binstash.model.api.StringStash;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ class SingleTierObjectCacheUseCaseTest {
         serializedPerson = "";
         try {
             serializedPerson = this.objectMapper.writeValueAsString(p);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 
@@ -103,7 +103,7 @@ class SingleTierObjectCacheUseCaseTest {
         String serializedListOfPerson = "";
         try {
             serializedListOfPerson = this.objectMapper.writeValueAsString(List.of(p));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 
@@ -154,7 +154,7 @@ class SingleTierObjectCacheUseCaseTest {
         String serializedListOfPerson = "";
         try {
             serializedListOfPerson = this.objectMapper.writeValueAsString(List.of(p));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 
@@ -185,7 +185,7 @@ class SingleTierObjectCacheUseCaseTest {
         String serializedMapOfPerson = "";
         try {
             serializedMapOfPerson = this.objectMapper.writeValueAsString(Map.of("p1", p));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 

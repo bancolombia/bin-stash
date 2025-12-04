@@ -2,7 +2,7 @@ package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.adapter.redis.RedisProperties;
 import co.com.bancolombia.binstash.config.CentralizedCacheConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import redis.embedded.RedisServer;
 
