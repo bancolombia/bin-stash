@@ -13,6 +13,7 @@ import java.util.Set;
 
 @Log
 @RequiredArgsConstructor
+@SuppressWarnings("unchecked")
 public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
 
     private final StringStash cache;
