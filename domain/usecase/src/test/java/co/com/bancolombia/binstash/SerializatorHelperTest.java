@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SerializatorHelperTest {
 
     @Mock
@@ -53,7 +54,8 @@ class SerializatorHelperTest {
         JacksonException e = new JacksonException("Dummy Error") {};
         doThrow(e).when(objectMapper).readValue(anyString(), any(TypeReference.class));
         SerializatorHelper<Person> sHelper = new SerializatorHelper<>(objectMapper);
-        Person p = sHelper.deserializeWith("{}", new TypeReference<Person>() {});
+        Person p = sHelper.deserializeWith("{}", new TypeReference<>() {
+        });
         assertNull(p);
         verify(objectMapper).readValue(anyString(), any(TypeReference.class));
     }
@@ -67,7 +69,8 @@ class SerializatorHelperTest {
         assertNull(sHelper.serialize(null));
         assertNull(sHelper.deserializeTo(null, Person.class));
         assertNull(sHelper.deserializeTo("pparker", null));
-        assertNull(sHelper.deserializeWith(null, new TypeReference<Person>() {}));
+        assertNull(sHelper.deserializeWith(null, new TypeReference<>() {
+        }));
         assertNull(sHelper.deserializeWith("pparker", null));
 
         verify(objectMapper, times(0)).writeValueAsString(any(Person.class));

@@ -7,6 +7,7 @@ import co.com.bancolombia.binstash.democentralized.model.DummyRepo;
 import co.com.bancolombia.binstash.democentralized.model.Person;
 import co.com.bancolombia.binstash.democentralized.repository.PersonRepo;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
+import org.springframework.context.annotation.Primary;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class CentralizedExampleConfiguration {
 
     @Bean
+    @Primary
     public DummyRepo dummyRepo() {
         return new PersonRepo();
     }

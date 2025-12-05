@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class DoubleTierObjectCacheUseCaseTest {
 
     private DoubleTierObjectCacheUseCase<Person> cache;
