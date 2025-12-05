@@ -2,11 +2,11 @@ package co.com.bancolombia.binstash.config;
 
 import co.com.bancolombia.binstash.LocalCacheFactory;
 import co.com.bancolombia.binstash.adapter.memory.MemoryStash;
-import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 public class LocalCacheConfig {

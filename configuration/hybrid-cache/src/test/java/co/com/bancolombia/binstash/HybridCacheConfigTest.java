@@ -2,9 +2,9 @@ package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.adapter.redis.RedisProperties;
 import co.com.bancolombia.binstash.config.HybridCacheConfig;
-import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 import redis.embedded.RedisServer;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
