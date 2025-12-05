@@ -28,4 +28,4 @@ project(':bin-stash-hybrid').projectDir = file('./configuration/hybrid-cache')
 //project(':bin-stash-example-centralized').projectDir = file('./examples/centralized')
 //
 //include ":bin-stash-example-hybrid"
-//roject(':bin-stash-example-hybrid').projectDir = file('./examples/hybrid')
+//project(':bin-stash-example-hybrid').projectDir = file('./examples/hybrid')
