@@ -3,7 +3,7 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.demo.Address;
 import co.com.bancolombia.binstash.demo.Person;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
-import com.fasterxml.jackson.core.type.TypeReference;
+import tools.jackson.core.type.TypeReference;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class DoubleTierObjectCacheUseCaseTest {
 
     private DoubleTierObjectCacheUseCase<Person> cache;

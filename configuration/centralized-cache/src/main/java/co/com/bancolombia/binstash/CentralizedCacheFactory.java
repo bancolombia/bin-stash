@@ -3,8 +3,8 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.model.api.MapCache;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
 import co.com.bancolombia.binstash.model.api.Stash;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
 
 @RequiredArgsConstructor
 public class CentralizedCacheFactory {
