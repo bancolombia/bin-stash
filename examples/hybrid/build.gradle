@@ -3,7 +3,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'io.projectreactor.addons:reactor-extra'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'tools.jackson.core:jackson-databind:3.0.3'
+    implementation 'tools.jackson.core:jackson-databind'
 }
 
 test.onlyIf { !project.hasProperty('examplesTesting') }
