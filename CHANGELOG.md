@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.0.0](https://github.com/bancolombia/bin-stash/tree/v2.0.0) (2025-12-09)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.2...v2.0.0)
+
+**Merged pull requests:**
+
+- feat!: update spring boot 4 and jackson 3 dependencies [\#37](https://github.com/bancolombia/bin-stash/pull/37) ([ingjohana](https://github.com/ingjohana))
+
 ## [v1.3.2](https://github.com/bancolombia/bin-stash/tree/v1.3.2) (2025-09-10)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.2-beta.1...v1.3.2)
