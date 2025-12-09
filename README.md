@@ -202,6 +202,15 @@ DoubleTierCache uses a collection of `SyncRule` to determine if upstream/downstr
 This functional interface takes keyname and `SyncType` (UPSTREAM or DOWNSTREAM) as arguments, and should return 
 a `boolean`.
 
+# How to use 
+| Version | Spring Boot | Jackson | Java         |
+|----|-------------|---------|--------------|
+| 2.0.0   | 4.0.0       | 3.x     | 17+          |
+| 1.3.2 | 3.x.x       | 2.x     | 17+ |
+
+
+
+
 # Build and Test
 TODO: Describe and show how to build your code and run the tests. 
 
