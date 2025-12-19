@@ -7,4 +7,3 @@ dependencies {
     testImplementation 'org.springframework:spring-test'
     testImplementation "com.github.codemonstur:embedded-redis:1.4.3"
 }
-
