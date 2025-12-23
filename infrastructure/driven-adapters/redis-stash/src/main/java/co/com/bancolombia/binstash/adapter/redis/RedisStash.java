@@ -200,4 +200,46 @@ public class RedisStash implements Stash {
         return computed;
     }
 
+    @Override
+    public Mono<String> setSave(String indexKey, String key, String value, int ttl) {
+        if (StringUtils.isAnyBlank(indexKey, key, value)) {
+            return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
+        } else {
+            return redisReactiveCommands.set(key, value, SetArgs.Builder.ex(computeTtl(ttl)))
+                    .flatMap(r -> redisReactiveCommands.sadd(indexKey, key))
+                    .map(r -> value);
+        }
+    }
+
+    @Override
+    public Mono<String> setSave(String indexKey, String key, String value) {
+        return this.setSave(indexKey, key, value, this.expireAfter);
+    }
+
+    @Override
+    public Flux<String> setGetAll(String indexKey) {
+        if (StringUtils.isAnyBlank(indexKey)) {
+            return Flux.error(new InvalidKeyException(ERROR_KEY_MSG));
+        } else {
+            return redisReactiveCommands.smembers(indexKey)
+                    .flatMap(key -> redisReactiveCommands.exists(key)
+                            .filter(result -> result == 1)
+                            .flatMap(unused -> redisReactiveCommands.get(key))
+                            .switchIfEmpty(Mono.defer(() -> redisReactiveCommands.srem(indexKey, key)
+                                    .then(Mono.empty()))));
+        }
+    }
+
+    @Override
+    public Mono<Boolean> setRemove(String indexKey, String key) {
+        if (StringUtils.isAnyBlank(indexKey, key)) {
+            return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
+        } else {
+            return redisReactiveCommands.srem(indexKey, key)
+                    .filter(result -> result == 1)
+                    .flatMap( unused -> redisReactiveCommands.del(key))
+                    .map(count -> count == 1)
+                    .defaultIfEmpty(Boolean.FALSE);
+        }
+    }
 }

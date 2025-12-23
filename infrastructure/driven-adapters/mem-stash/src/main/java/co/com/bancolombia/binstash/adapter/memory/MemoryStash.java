@@ -14,6 +14,7 @@ import reactor.util.function.Tuples;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ public class MemoryStash implements Stash {
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
     private static final String ERROR_VALUE_MSG = "Caching empty or null value not allowed";
     private static final String KEY_SEP = "#";
+    private final ConcurrentHashMap<String, Set<String>> indexKeyMap = new ConcurrentHashMap<>();
 
     private final Cache<String, MemoryStash.Entry> caffeineCache;
     private final int expireAfter;
@@ -209,6 +211,56 @@ public class MemoryStash implements Stash {
         return computed;
     }
 
+    @Override
+    public Mono<String> setSave(String indexKey, String key, String value, int ttl) {
+        return Mono.fromSupplier( () ->{
+            if (StringUtils.isAnyBlank(indexKey, key, value)) {
+                throw new InvalidKeyException(ERROR_KEY_MSG);
+            } else {
+                caffeineCache.put(key, new Entry(value, computeTtl(ttl)));
+                indexKeyMap.computeIfAbsent(indexKey, k ->
+                        ConcurrentHashMap.newKeySet()).add(key);
+                return value;
+            }
+        });
+    }
+
+    @Override
+    public Mono<String> setSave(String indexKey, String key, String value) {
+        return setSave(indexKey, key, value, -1);
+    }
+
+    @Override
+    public Flux<String> setGetAll(String indexKey) {
+        if (StringUtils.isAnyBlank(indexKey)) {
+            return Flux.error(new InvalidKeyException(ERROR_KEY_MSG));
+        } else {
+            Set<String> keys = indexKeyMap.getOrDefault(indexKey, Set.of());
+            return Flux.fromIterable(keys)
+                    .flatMap(key -> {
+                        Entry entry = caffeineCache.getIfPresent(key);
+                        if (entry != null ) {
+                            return Mono.just(entry.getData());
+                        } else {
+                            indexKeyMap.get(indexKey).remove(key);
+                            return Mono.empty();
+                        }
+                    });
+        }
+    }
+
+    @Override
+    public Mono<Boolean> setRemove(String indexKey, String key) {
+        return Mono.fromSupplier(() -> {
+            if (StringUtils.isAnyBlank(indexKey, key)) {
+                throw new InvalidKeyException(ERROR_KEY_MSG);
+            } else {
+                caffeineCache.invalidate(key);
+                return indexKeyMap.getOrDefault(indexKey, Set.of()).remove(key);
+            }
+        });
+    }
+
     @Data
     public static final class Entry {
         private String data;
@@ -242,7 +294,8 @@ public class MemoryStash implements Stash {
             return new MemoryStash(
                     Caffeine.newBuilder()
                             .maximumSize(this.maxSize)
-                            .expireAfterWrite((this.expireAfter<=0)?DEFAULT_BASE_EXPIRATION_SECONDS:this.expireAfter, TimeUnit.SECONDS)
+                            .expireAfterWrite((this.expireAfter<=0) ?
+                                    DEFAULT_BASE_EXPIRATION_SECONDS:this.expireAfter, TimeUnit.SECONDS)
                             .build(),
                     this.expireAfter
             );
