@@ -104,6 +104,56 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
         return localCache.evictAll();
     }
 
+    @Override
+    public Mono<T> setSave(String indexKey, String key, T value, int ttl) {
+        return localCache.setSave(indexKey, key, value, ttl)
+                .doAfterTerminate(() ->
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(indexKey))
+                                .subscribeOn(elastic_scheduler)
+                                .filter(shouldSync -> shouldSync)
+                                .flatMap(shouldSync -> centralizedCache.exists(indexKey))
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(exists -> centralizedCache.setSave(indexKey, key, value, ttl))
+                                .subscribe()
+                );
+    }
+
+    @Override
+    public Mono<T> setSave(String indexKey, String key, T value) {
+        return localCache.setSave(indexKey, key, value)
+                .doAfterTerminate(() ->
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(indexKey))
+                                .subscribeOn(elastic_scheduler)
+                                .filter(shouldSync -> shouldSync)
+                                .flatMap(shouldSync -> centralizedCache.exists(indexKey))
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(exists -> centralizedCache.setSave(indexKey, key, value))
+                                .subscribe()
+                );
+    }
+
+    @Override
+    public Flux<T> setGetAll(String indexKey, Class<T> clazz) {
+        return localCache.setGetAll(indexKey, clazz)
+                .switchIfEmpty(Flux.defer(() ->
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(indexKey))
+                                .filter(shouldFetchFromDist -> shouldFetchFromDist)
+                                .flatMapMany(shouldFetch -> this.searchCentralizedSet(indexKey, clazz))
+                ));
+    }
+
+    @Override
+    public Mono<Boolean> setRemove(String indexKey, String key) {
+        return localCache.setRemove(indexKey, key)
+                .doAfterTerminate(() ->
+                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(indexKey))
+                                .subscribeOn(elastic_scheduler)
+                                .filter(shouldSyncUpstream -> shouldSyncUpstream)
+                                .flatMap(shouldSync -> centralizedCache.setRemove(indexKey, key))
+                                .subscribe()
+                );
+    }
+
     private Mono<T> searchCentralized(String key, Class<T> clazz) {
         return this.centralizedCache.get(key, clazz)
                 .doOnNext(next ->
@@ -120,6 +170,16 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
                         Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
                                 .filter(shouldSyncFromDist -> shouldSyncFromDist)
                                 .flatMap(shouldSync -> this.localCache.save(key, next))
+                                .subscribe()
+                );
+    }
+
+    private Flux<T> searchCentralizedSet(String indexKey, Class<T> clazz) {
+        return this.centralizedCache.setGetAll(indexKey, clazz)
+                .doOnNext(next ->
+                        Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(indexKey))
+                                .filter(shouldSyncFromDist -> shouldSyncFromDist)
+                                .flatMap(shouldSync -> this.localCache.setSave(indexKey, indexKey, next))
                                 .subscribe()
                 );
     }

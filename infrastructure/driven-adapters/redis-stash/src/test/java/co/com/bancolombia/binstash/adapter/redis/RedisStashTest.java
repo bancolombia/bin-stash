@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 class RedisStashTest {
 
     private static final String TEST_VALUE = "Hello World";
+    private static final String TEST_INDEX_KEY = "setKey";
     private static RedisServer redisServer;
     private RedisProperties properties;
     private RedisStash stash;
@@ -359,5 +360,133 @@ class RedisStashTest {
                 .expectSubscription()
                 .expectErrorMessage("Caching key cannot be null")
                 .verify();
+    }
+
+    @Test
+    @DisplayName("Should save element in set and retrieve it")
+    void testSSaveAndSetGetAll() {
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", TEST_VALUE))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setGetAll(TEST_INDEX_KEY))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle sSave with null arguments")
+    void testSetSaveNullArgs() {
+        StepVerifier.create(stash.setSave(null, "key1", TEST_VALUE))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, null, TEST_VALUE))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", null))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should remove element from set")
+    void testSetRemove() {
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", TEST_VALUE))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setRemove(TEST_INDEX_KEY, "key1"))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle setRemove with null arguments")
+    void testSetRemoveNullArgs() {
+        StepVerifier.create(stash.setRemove(null, "key1"))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+
+        StepVerifier.create(stash.setRemove(TEST_INDEX_KEY, null))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle setGetAll with null argument")
+    void testSetGetAllNullArg() {
+        StepVerifier.create(stash.setGetAll(null))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should remove set reference if item does not exist")
+    void testSetGetAllRemovesMissingItem() {
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", TEST_VALUE))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.evict("key1"))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setGetAll(TEST_INDEX_KEY))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should return false when removing non-existent key from set")
+    void testSetRemoveNonExistentKey() {
+        StepVerifier.create(stash.setRemove(TEST_INDEX_KEY, "nonExistentKey"))
+                .expectSubscription()
+                .expectNext(false)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should return false when removing non-existent field from map")
+    void testHDeleteNonExistentField() {
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", TEST_VALUE))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.evict("key1"))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setRemove(TEST_INDEX_KEY, "key1"))
+                .expectSubscription()
+                .expectNext(false)
+                .expectComplete()
+                .verify();
+
     }
 }
