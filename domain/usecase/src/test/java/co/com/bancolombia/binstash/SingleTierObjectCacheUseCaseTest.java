@@ -7,6 +7,7 @@ import co.com.bancolombia.binstash.model.api.StringStash;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -318,6 +319,7 @@ class SingleTierObjectCacheUseCaseTest {
 
     @Test
     @DisplayName("Set save with TTL in cache (List object)")
+    @SneakyThrows
     void testSetSaveListWithTtl() {
 
         SerializatorHelper<List<Person>> serializatorHelper2 = new SerializatorHelper<>(objectMapper);
@@ -325,13 +327,7 @@ class SingleTierObjectCacheUseCaseTest {
         SingleTierObjectCacheUseCase<List<Person>> cache2 =
                 new SingleTierObjectCacheUseCase<>(mockedStash, serializatorHelper2);
 
-        String serializedListOfPerson = "";
-        try {
-            serializedListOfPerson = this.objectMapper.writeValueAsString(List.of(p));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
+        String serializedListOfPerson = this.objectMapper.writeValueAsString(List.of(p));
         when(mockedStash.setSave(anyString(), anyString(), anyString(), eq(3600)))
                 .thenReturn(Mono.just(serializedListOfPerson));
 
@@ -374,18 +370,14 @@ class SingleTierObjectCacheUseCaseTest {
 
     @Test
     @DisplayName("Set get all from cache with multiple items")
+    @SneakyThrows
     void testSetGetAllMultiple() {
 
         Person p2 = new Person();
         p2.setName("Tony Stark");
         p2.setAddress(new Address("Stark Tower", "NY"));
 
-        String serializedPerson2 = "";
-        try {
-            serializedPerson2 = this.objectMapper.writeValueAsString(p2);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        String serializedPerson2 = this.objectMapper.writeValueAsString(p2);
 
         when(mockedStash.setGetAll(anyString()))
                 .thenReturn(Flux.just(serializedPerson, serializedPerson2));
