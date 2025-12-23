@@ -2,15 +2,15 @@ package co.com.bancolombia.binstash;
 
 
 import co.com.bancolombia.binstash.demo.Person;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SerializatorHelperTest {
 
     @Mock
@@ -27,7 +28,7 @@ class SerializatorHelperTest {
     @Test
     @DisplayName("Should handle error on write json")
     void testRaiseError() {
-        JsonProcessingException e = new JsonProcessingException("Dummy Error") {};
+        JacksonException e = new JacksonException("Dummy Error") {};
         doThrow(e).when(objectMapper).writeValueAsString(any());
         SerializatorHelper<Person> sHelper = new SerializatorHelper<>(objectMapper);
         String s = sHelper.serialize(new Person());
@@ -39,7 +40,7 @@ class SerializatorHelperTest {
     @Test
     @DisplayName("Should handle error on parse json")
     void testRaiseError2() {
-        JsonProcessingException e = new JsonProcessingException("Dummy Error") {};
+        JacksonException e = new JacksonException("Dummy Error") {};
         doThrow(e).when(objectMapper).readValue(anyString(), any(Class.class));
         SerializatorHelper<Person> sHelper = new SerializatorHelper<>(objectMapper);
         sHelper.deserializeTo("{}", Person.class);
@@ -50,10 +51,11 @@ class SerializatorHelperTest {
     @Test
     @DisplayName("Should handle error on parse json II")
     void testRaiseError3() {
-        JsonProcessingException e = new JsonProcessingException("Dummy Error") {};
+        JacksonException e = new JacksonException("Dummy Error") {};
         doThrow(e).when(objectMapper).readValue(anyString(), any(TypeReference.class));
         SerializatorHelper<Person> sHelper = new SerializatorHelper<>(objectMapper);
-        Person p = sHelper.deserializeWith("{}", new TypeReference<>() {});
+        Person p = sHelper.deserializeWith("{}", new TypeReference<>() {
+        });
         assertNull(p);
         verify(objectMapper).readValue(anyString(), any(TypeReference.class));
     }
@@ -67,7 +69,8 @@ class SerializatorHelperTest {
         assertNull(sHelper.serialize(null));
         assertNull(sHelper.deserializeTo(null, Person.class));
         assertNull(sHelper.deserializeTo("pparker", null));
-        assertNull(sHelper.deserializeWith(null, new TypeReference<>() {}));
+        assertNull(sHelper.deserializeWith(null, new TypeReference<>() {
+        }));
         assertNull(sHelper.deserializeWith("pparker", null));
 
         verify(objectMapper, times(0)).writeValueAsString(any(Person.class));

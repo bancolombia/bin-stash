@@ -4,11 +4,11 @@ import co.com.bancolombia.binstash.adapter.memory.MemoryStash;
 import co.com.bancolombia.binstash.config.LocalCacheConfig;
 import co.com.bancolombia.binstash.model.api.MapCache;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

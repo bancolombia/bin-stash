@@ -4,13 +4,18 @@ allprojects {
     apply plugin: 'org.sonarqube'
     apply plugin: 'org.owasp.dependencycheck'
 
-    sourceCompatibility = JavaVersion.VERSION_17
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
 
     repositories {
         mavenCentral()
     }
 
-    group 'com.github.bancolombia'
+    group = 'com.github.bancolombia'
 
     sonarqube {
         properties {
@@ -43,7 +48,6 @@ subprojects {
 
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
-    apply plugin: 'io.spring.dependency-management'
 
     ext {
         groupId = 'com.github.bancolombia'
@@ -52,25 +56,20 @@ subprojects {
     dependencies {
         implementation 'io.projectreactor:reactor-core'
 
-        compileOnly "org.projectlombok:lombok:1.18.38"
-        annotationProcessor "org.projectlombok:lombok:1.18.38"
+        compileOnly "org.projectlombok:lombok:1.18.42"
+        annotationProcessor "org.projectlombok:lombok:1.18.42"
 
-        testCompileOnly "org.projectlombok:lombok:1.18.38"
-        testAnnotationProcessor "org.projectlombok:lombok:1.18.38"
+        testCompileOnly "org.projectlombok:lombok:1.18.42"
+        testAnnotationProcessor "org.projectlombok:lombok:1.18.42"
 
         testImplementation 'io.projectreactor:reactor-test'
-        testImplementation platform('org.junit:junit-bom:5.13.0')
+        testImplementation platform('org.junit:junit-bom:6.0.1')
         testImplementation 'org.junit.jupiter:junit-jupiter-engine'
         testImplementation 'org.junit.jupiter:junit-jupiter-params'
         testImplementation 'org.junit.platform:junit-platform-launcher'
-        testImplementation 'org.mockito:mockito-inline:5.2.0'
-        testImplementation 'org.mockito:mockito-junit-jupiter:5.18.0'
-    }
-
-    dependencyManagement {
-        imports {
-            mavenBom "org.springframework.boot:spring-boot-dependencies:3.5.3"
-        }
+        testImplementation 'org.mockito:mockito-core:5.21.0'
+        testImplementation 'org.mockito:mockito-junit-jupiter:5.21.0'
+        implementation platform('org.springframework.boot:spring-boot-dependencies:4.0.1')
     }
 
     test {
@@ -182,5 +181,5 @@ tasks.register('generateMergedReport', JacocoReport) {
 }
 
 tasks.named('wrapper') {
-    gradleVersion = '8.14.3'
+    gradleVersion = '9.2.1'
 }

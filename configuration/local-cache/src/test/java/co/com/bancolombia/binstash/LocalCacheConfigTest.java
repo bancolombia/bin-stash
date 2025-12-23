@@ -1,10 +1,10 @@
 package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.config.LocalCacheConfig;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
