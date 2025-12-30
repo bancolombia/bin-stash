@@ -70,5 +70,39 @@ public interface StringStash {
      */
     Mono<Boolean> evictAll();
 
+    /**
+     * Saves a key-value pair in a set identified by indexKey, indicating a Time to live for the data in the cache
+     * @param indexKey the identifier of the set collection
+     * @param key the key to be stored in the set
+     * @param value the value to be stored under the key
+     * @param ttl time to live in seconds
+     * @return the value stored.
+     */
+    Mono<String> setSave(String indexKey, String key, String value, int ttl);
+
+    /**
+     * Saves a key-value pair in a set identified by indexKey
+     * @param indexKey the identifier of the set collection
+     * @param key the key to be stored in the set
+     * @param value the value to be stored under the key
+     * @return the value stored.
+     */
+    Mono<String> setSave(String indexKey, String key, String value);
+
+    /**
+     * Retrieves all values from the set identified by indexKey
+     * @param indexKey the identifier of the set collection
+     * @return all values stored in the set if exists, Empty Flux otherwise.
+     */
+    Flux<String> setGetAll(String indexKey);
+
+    /**
+     * Removes a key-value pair from the set identified by indexKey
+     * @param indexKey the identifier of the set collection
+     * @param key the key to be removed from the set
+     * @return true if the key-value pair was removed, false otherwise.
+     */
+    Mono<Boolean> setRemove(String indexKey, String key);
+
 }
 
