@@ -175,6 +175,112 @@ public class PersonCachedHandler {
 3.	Latest releases
 4.	API references
 
+## Working with Set Operations
+
+Bin-Stash provides specialized operations for managing collections of key-value pairs grouped by an index key. This feature is useful when you need to organize related data under a common identifier.
+
+### Set Operations Overview
+
+The set operations allow you to:
+- Group multiple key-value pairs under a single index key
+- Store each individual item with its own TTL
+- Retrieve all values associated with an index key
+- Remove specific items from the collection
+
+### Available Methods
+
+#### `setSave(String indexKey, String key, String value, int ttl)`
+Saves a key-value pair in a set identified by `indexKey`, with a specified time-to-live.
+
+**Parameters:**
+- `indexKey`: The identifier of the set collection
+- `key`: The key to be stored in the set
+- `value`: The value to be stored under the key
+- `ttl`: Time to live in seconds
+
+**Returns:** `Mono<String>` - The value stored
+
+#### `setSave(String indexKey, String key, String value)`
+Saves a key-value pair in a set identified by `indexKey`, using the default TTL configuration.
+
+**Parameters:**
+- `indexKey`: The identifier of the set collection
+- `key`: The key to be stored in the set
+- `value`: The value to be stored under the key
+
+**Returns:** `Mono<String>` - The value stored
+
+#### `setGetAll(String indexKey)`
+Retrieves all values from the set identified by `indexKey`. Automatically filters out expired keys.
+
+**Parameters:**
+- `indexKey`: The identifier of the set collection
+
+**Returns:** `Flux<String>` - All values stored in the set if it exists, Empty Flux otherwise
+
+#### `setRemove(String indexKey, String key)`
+Removes a specific key-value pair from the set identified by `indexKey`.
+
+**Parameters:**
+- `indexKey`: The identifier of the set collection
+- `key`: The key to be removed from the set
+
+**Returns:** `Mono<Boolean>` - `true` if the key-value pair was removed, `false` otherwise
+
+### Usage Example
+
+```java
+@Component
+public class UserSessionHandler {
+
+    private final ObjectCache<SessionData> cache;
+    
+    @Autowired
+    public UserSessionHandler(ObjectCache<SessionData> cache) {
+        this.cache = cache;
+    }
+
+    // Save a session with custom TTL (1 hour)
+    public Mono<SessionData> createSession(String userId, SessionData session) {
+        String sessionKey = "session:" + session.getSessionId();
+        return cache.setSave("user:" + userId, sessionKey, session, 3600);
+    }
+
+    // Save a session with default TTL
+    public Mono<SessionData> createSessionDefault(String userId, SessionData session) {
+        String sessionKey = "session:" + session.getSessionId();
+        return cache.setSave("user:" + userId, sessionKey, session);
+    }
+
+    // Get all sessions for a user
+    public Flux<SessionData> getUserSessions(String userId) {
+        return cache.setGetAll("user:" + userId, SessionData.class);
+    }
+
+    // Remove a specific session
+    public Mono<Boolean> removeSession(String userId, String sessionId) {
+        return cache.setRemove("user:" + userId, "session:" + sessionId);
+    }
+}
+```
+
+### Use Cases
+
+Set operations are ideal for:
+- **User Sessions**: Group all active sessions for a user under their user ID
+- **Shopping Carts**: Store multiple cart items under a cart ID
+- **Notification Queues**: Manage pending notifications for a user
+- **Task Lists**: Organize tasks by project or user
+- **Temporary Collections**: Any scenario where you need to group related data with independent expiration times
+
+### How it works with Redis
+
+When using centralized (Redis) or hybrid cache:
+- The `indexKey` is stored as a Redis SET containing all keys in the collection
+- Each `key` is stored as a regular Redis key with its own value and TTL
+- `setGetAll` automatically cleans up expired keys from the set
+- `setRemove` removes both the individual key and its reference from the set
+
 # How two tier cache works
 
 When using the cache in hybrid mode (two tier cache), requests works as described:
