@@ -239,10 +239,13 @@ public class MemoryStash implements Stash {
             return Flux.fromIterable(keys)
                     .flatMap(key -> {
                         Entry entry = caffeineCache.getIfPresent(key);
-                        if (entry != null ) {
+                        if (entry != null && !entry.amIExpired(System.currentTimeMillis())) {
                             return Mono.just(entry.getData());
                         } else {
-                            indexKeyMap.get(indexKey).remove(key);
+                            indexKeyMap.computeIfPresent(indexKey, (k, set) -> {
+                                set.remove(key);
+                                return set.isEmpty() ? null : set;
+                            });
                             return Mono.empty();
                         }
                     });

@@ -222,11 +222,9 @@ public class RedisStash implements Stash {
             return Flux.error(new InvalidKeyException(ERROR_KEY_MSG));
         } else {
             return redisReactiveCommands.smembers(indexKey)
-                    .flatMap(key -> redisReactiveCommands.exists(key)
-                            .filter(result -> result == 1)
-                            .flatMap(unused -> redisReactiveCommands.get(key))
-                            .switchIfEmpty(Mono.defer(() -> redisReactiveCommands.srem(indexKey, key)
-                                    .then(Mono.empty()))));
+                    .flatMap(key -> redisReactiveCommands.get(key)
+                            .switchIfEmpty(redisReactiveCommands.srem(indexKey, key)
+                                    .then(Mono.empty())));
         }
     }
 

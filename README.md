@@ -213,6 +213,8 @@ Saves a key-value pair in a set identified by `indexKey`, using the default TTL 
 #### `setGetAll(String indexKey)`
 Retrieves all values from the set identified by `indexKey`. Automatically filters out expired keys.
 
+> ⚠️ **Performance Warning**: This method has O(N) time complexity, where N is the number of members in the set. It iterates through every member and fetches its value, resulting in multiple round-trips to Redis (`SMEMBERS`, then `GET` or `GET` + `SREM` for each key). For large sets, this can cause high latency and increased load on Redis due to many sequential calls.
+
 **Parameters:**
 - `indexKey`: The identifier of the set collection
 
