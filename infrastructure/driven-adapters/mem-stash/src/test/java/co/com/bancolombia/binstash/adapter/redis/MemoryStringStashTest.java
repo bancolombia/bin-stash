@@ -13,6 +13,7 @@ import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -276,7 +277,7 @@ class MemoryStringStashTest {
                 .expectComplete()
                 .verify();
 
-        assertTrue(indexKeyMap.get(indexKey).isEmpty());
+        assertTrue(Objects.isNull(indexKeyMap.get(indexKey)));
 
     }
 
