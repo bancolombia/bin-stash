@@ -79,5 +79,58 @@ public interface ObjectCache<T> {
      */
     Mono<Boolean> evictAll();
 
+    /**
+     * Saves a value to a set structure in cache with a specified TTL.
+     * This method stores the value as a member of a set identified by the indexKey,
+     * with an individual key for the value and a time-to-live for the set.
+     *
+     * @param indexKey the key that identifies the set in cache
+     * @param key the individual key for the value within the set
+     * @param value the value to store in the set
+     * @param ttl time the set should live in cache (in seconds)
+     * @return a Mono containing the value stored
+     */
+    Mono<T> setSave(String indexKey, String key, T value, int ttl);
+
+    /**
+     * Saves a value to a set structure in cache without specifying a TTL.
+     * This method stores the value as a member of a set identified by the indexKey,
+     * with an individual key for the value. The set will persist according to
+     * the cache's default behavior.
+     *
+     * @param indexKey the key that identifies the set in cache
+     * @param key the individual key for the value within the set
+     * @param value the value to store in the set
+     * @return a Mono containing the value stored
+     */
+    Mono<T> setSave(String indexKey, String key, T value);
+
+    /**
+     * Retrieves all values from a set structure in cache.
+     * This method fetches all members of a set identified by the indexKey and
+     * deserializes them to the specified class type.
+     *
+     * <p><strong>Performance Warning:</strong> This method has O(N) time complexity, where N is the number
+     * of members in the set. It iterates through every member and fetches its value, resulting in multiple
+     * round-trips to Redis (SMEMBERS, then GET or GET + SREM for each key). For large sets, this can cause
+     * high latency and increased load on Redis due to many sequential calls.</p>
+     *
+     * @param indexKey the key that identifies the set in cache
+     * @param clazz the class type of objects stored for deserialization purposes
+     * @return a Flux emitting all values stored in the set, or empty if the set doesn't exist
+     */
+    Flux<T> setGetAll(String indexKey, Class<T> clazz);
+
+    /**
+     * Removes a specific value from a set structure in cache.
+     * This method removes the member identified by the key from the set
+     * identified by the indexKey.
+     *
+     * @param indexKey the key that identifies the set in cache
+     * @param key the individual key of the value to remove from the set
+     * @return a Mono containing a boolean result. True if the value was removed, false otherwise
+     */
+    Mono<Boolean> setRemove(String indexKey, String key);
+
 }
 

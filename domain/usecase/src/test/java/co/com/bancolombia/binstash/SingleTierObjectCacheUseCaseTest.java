@@ -2,7 +2,9 @@ package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.demo.Address;
 import co.com.bancolombia.binstash.demo.Person;
+import co.com.bancolombia.binstash.model.InvalidValueException;
 import co.com.bancolombia.binstash.model.api.StringStash;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -280,6 +282,161 @@ class SingleTierObjectCacheUseCaseTest {
                 .verify();
 
         verify(mockedStash).evict("pparker");
+    }
+
+    @Test
+    @DisplayName("Set save with TTL in cache")
+    void testSetSaveWithTtl() {
+
+        when(mockedStash.setSave(anyString(), anyString(), anyString(), eq(3600)))
+                .thenReturn(Mono.just(serializedPerson));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p, 3600))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setSave("user:index", "pparker", serializedPerson, 3600);
+    }
+
+    @Test
+    @DisplayName("Set save without TTL in cache")
+    void testSetSave() {
+
+        when(mockedStash.setSave(anyString(), anyString(), anyString(), eq(-1)))
+                .thenReturn(Mono.just(serializedPerson));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setSave("user:index", "pparker", serializedPerson, -1);
+    }
+
+    @Test
+    @DisplayName("Set save with TTL in cache (List object)")
+    @SneakyThrows
+    void testSetSaveListWithTtl() {
+
+        SerializatorHelper<List<Person>> serializatorHelper2 = new SerializatorHelper<>(objectMapper);
+
+        SingleTierObjectCacheUseCase<List<Person>> cache2 =
+                new SingleTierObjectCacheUseCase<>(mockedStash, serializatorHelper2);
+
+        String serializedListOfPerson = this.objectMapper.writeValueAsString(List.of(p));
+        when(mockedStash.setSave(anyString(), anyString(), anyString(), eq(3600)))
+                .thenReturn(Mono.just(serializedListOfPerson));
+
+        StepVerifier.create(cache2.setSave("users:index", "list", List.of(p), 3600))
+                .expectSubscription()
+                .expectNext(List.of(p))
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setSave("users:index", "list", serializedListOfPerson, 3600);
+    }
+
+    @Test
+    @DisplayName("Set save without object")
+    void testSetSaveWithNullObject() {
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", null, 3600))
+                .expectError(InvalidValueException.class)
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Set get all from cache")
+    void testSetGetAll() {
+
+        when(mockedStash.setGetAll(anyString()))
+                .thenReturn(Flux.just(serializedPerson));
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectNextMatches(received -> {
+                    assert received.equals(p);
+                    return true;
+                })
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setGetAll("user:index");
+    }
+
+    @Test
+    @DisplayName("Set get all from cache with multiple items")
+    @SneakyThrows
+    void testSetGetAllMultiple() {
+
+        Person p2 = new Person();
+        p2.setName("Tony Stark");
+        p2.setAddress(new Address("Stark Tower", "NY"));
+
+        String serializedPerson2 = this.objectMapper.writeValueAsString(p2);
+
+        when(mockedStash.setGetAll(anyString()))
+                .thenReturn(Flux.just(serializedPerson, serializedPerson2));
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectNext(p)
+                .expectNext(p2)
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setGetAll("user:index");
+    }
+
+    @Test
+    @DisplayName("Set get all from cache returns empty")
+    void testSetGetAllEmpty() {
+
+        when(mockedStash.setGetAll(anyString())).thenReturn(Flux.empty());
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setGetAll("user:index");
+    }
+
+    @Test
+    @DisplayName("Set remove key from cache")
+    void testSetRemove() {
+
+        when(mockedStash.setRemove(anyString(), anyString())).thenReturn(Mono.just(true));
+
+        Mono<Boolean> result = cache.setRemove("user:index", "pparker");
+
+        StepVerifier.create(result)
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setRemove("user:index", "pparker");
+    }
+
+    @Test
+    @DisplayName("Set remove key not found in cache")
+    void testSetRemoveNotFound() {
+
+        when(mockedStash.setRemove(anyString(), anyString())).thenReturn(Mono.just(false));
+
+        Mono<Boolean> result = cache.setRemove("user:index", "unknown");
+
+        StepVerifier.create(result)
+                .expectSubscription()
+                .expectNext(false)
+                .expectComplete()
+                .verify();
+
+        verify(mockedStash).setRemove("user:index", "unknown");
     }
 
 }
