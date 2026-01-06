@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.0](https://github.com/bancolombia/bin-stash/tree/v2.1.0) (2026-01-06)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.0.1...v2.1.0)
+
+**Merged pull requests:**
+
+- feat: Add set operations to ObjectCache and StringStash interfaces [\#40](https://github.com/bancolombia/bin-stash/pull/40) ([MichaelCuellar](https://github.com/MichaelCuellar))
+
 ## [v2.0.1](https://github.com/bancolombia/bin-stash/tree/v2.0.1) (2025-12-19)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.0.0...v2.0.1)
