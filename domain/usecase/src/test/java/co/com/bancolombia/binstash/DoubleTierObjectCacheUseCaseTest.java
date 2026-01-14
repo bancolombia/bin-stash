@@ -301,4 +301,199 @@ class DoubleTierObjectCacheUseCaseTest {
 
         verify(memStash).evictAll();
     }
+
+    @Test
+    @DisplayName("Set save with TTL on local cache only")
+    void testSetSaveWithTtlOnlyLocal() {
+
+        when(memStash.setSave(anyString(), anyString(), any(Person.class), anyInt())).thenReturn(Mono.just(p));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p, 3600))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(memStash).setSave("user:index", "pparker", p, 3600);
+        verify(redisStash, times(0)).setSave(anyString(), anyString(), any(Person.class), anyInt());
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Set save with TTL on local cache and then update distributed")
+    void testSetSaveWithTtlLocalAndUpstream() {
+
+        when(memStash.setSave(anyString(), anyString(), any(Person.class), anyInt())).thenReturn(Mono.just(p));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(redisStash.exists(anyString())).thenReturn(Mono.just(false));
+        when(redisStash.setSave(anyString(), anyString(), any(Person.class), anyInt())).thenReturn(Mono.just(p));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p, 3600))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(memStash).setSave("user:index", "pparker", p, 3600);
+        verify(redisStash, timeout(1000)).exists("user:index");
+        verify(redisStash, timeout(1000)).setSave("user:index", "pparker", p, 3600);
+    }
+
+    @Test
+    @DisplayName("Set save without TTL on local cache only")
+    void testSetSaveOnlyLocal() {
+
+        when(memStash.setSave(anyString(), anyString(), any(Person.class))).thenReturn(Mono.just(p));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(memStash).setSave("user:index", "pparker", p);
+        verify(redisStash, times(0)).setSave(anyString(), anyString(), any(Person.class));
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Set save without TTL on local cache and then update distributed")
+    void testSetSaveLocalAndUpstream() {
+
+        when(memStash.setSave(anyString(), anyString(), any(Person.class))).thenReturn(Mono.just(p));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(redisStash.exists(anyString())).thenReturn(Mono.just(false));
+        when(redisStash.setSave(anyString(), anyString(), any(Person.class))).thenReturn(Mono.just(p));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(memStash).setSave("user:index", "pparker", p);
+        verify(redisStash, timeout(1000)).exists("user:index");
+        verify(redisStash, timeout(1000)).setSave("user:index", "pparker", p);
+    }
+
+    @Test
+    @DisplayName("Set get all from local cache")
+    void testSetGetAllFromLocal() {
+
+        when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verify();
+
+        verify(memStash).setGetAll(eq("user:index"), any());
+        verify(redisStash, times(0)).setGetAll(anyString(), any());
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Miss local cache on set get all, then fetch from centralized, but no save local")
+    void testSetGetAllFromLocalAndUpstreamNotSyncDownstream() {
+
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(false);
+
+        when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
+        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
+
+        verify(memStash).setGetAll(eq("user:index"), any());
+        verify(memStash, times(0)).setSave(anyString(), anyString(), any(Person.class));
+        verify(redisStash).setGetAll(eq("user:index"), any());
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Miss local cache on set get all, then fetch from centralized, then sync local cache")
+    void testSetGetAllFromLocalAndUpstreamAndSyncDownstream() {
+
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
+
+        when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
+        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
+        when(memStash.setSave(anyString(), anyString(), any(Person.class))).thenReturn(Mono.just(p));
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectNext(p)
+                .expectComplete()
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
+
+        verify(memStash).setGetAll(eq("user:index"), any());
+        verify(memStash, timeout(1000)).setSave(eq("user:index"), eq("user:index"), any(Person.class));
+        verify(redisStash).setGetAll(eq("user:index"), any());
+    }
+
+    @Test
+    @DisplayName("Miss local and centralized caches on set get all")
+    void testSetGetAllShouldNotGetFromRedis() {
+
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
+        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+
+        verify(memStash).setGetAll(eq("user:index"), any());
+        verify(redisStash).setGetAll(eq("user:index"), any());
+    }
+
+    @Test
+    @DisplayName("Set remove key in local cache only")
+    void testSetRemove() {
+
+        when(memStash.setRemove(anyString(), anyString())).thenReturn(Mono.just(true));
+
+        StepVerifier.create(cache.setRemove("user:index", "pparker"))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
+
+        verify(memStash).setRemove("user:index", "pparker");
+        verify(redisStash, times(0)).setRemove(anyString(), anyString());
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("Set remove key in local cache then @ centralized")
+    void testSetRemoveDoubleTier() {
+
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(memStash.setRemove(anyString(), anyString())).thenReturn(Mono.just(true));
+        when(redisStash.setRemove(anyString(), anyString())).thenReturn(Mono.just(true));
+
+        StepVerifier.create(cache.setRemove("user:index", "pparker"))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verifyThenAssertThat()
+                .hasNotDiscardedElements()
+                .hasNotDroppedElements();
+
+        verify(memStash).setRemove("user:index", "pparker");
+        verify(redisStash, timeout(1000)).setRemove("user:index", "pparker");
+    }
 }

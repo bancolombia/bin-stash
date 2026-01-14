@@ -9,12 +9,17 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MemoryStringStashTest {
 
@@ -230,6 +235,99 @@ class MemoryStringStashTest {
         StepVerifier.create(op)
                 .expectSubscription()
                 .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should save element with indexKey and retrieve it")
+    void testSSaveAndSetGetAll() {
+        String indexKey = "group1";
+        StepVerifier.create(stash.setSave(indexKey, TEST_KEY, TEST_VALUE))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setGetAll(indexKey))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+    }
+
+
+    @Test
+    @DisplayName("Should save element with indexKey and ttl, then expire")
+    void testSetSaveWithTtlExpire() throws Exception {
+        String indexKey = "group2";
+        Field field = stash.getClass().getDeclaredField("indexKeyMap");
+        field.setAccessible(true);
+        ConcurrentHashMap<String, Set<String>> indexKeyMap = (ConcurrentHashMap<String, Set<String>>) field.get(stash);
+
+        StepVerifier.create(stash.setSave(indexKey, TEST_KEY, TEST_VALUE, 1))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        assertFalse(indexKeyMap.get(indexKey).isEmpty());
+
+        StepVerifier.create(stash.setGetAll(indexKey).delaySubscription(Duration.ofSeconds(2)))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+
+        assertTrue(Objects.isNull(indexKeyMap.get(indexKey)));
+
+    }
+
+    @Test
+    @DisplayName("Should not save with null indexKey")
+    void testSetSaveWithNullIndexKey() {
+        StepVerifier.create(stash.setSave(null, TEST_KEY, TEST_VALUE))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should remove element from indexKey")
+    void testSetRemove() {
+        String indexKey = "group3";
+
+        StepVerifier.create(stash.setSave(indexKey, TEST_KEY, TEST_VALUE))
+                .expectSubscription()
+                .expectNext(TEST_VALUE)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setRemove(indexKey, TEST_KEY))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setGetAll(indexKey))
+                .expectSubscription()
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle setRemove with null key")
+    void testSetRemoveWithNullKey() {
+        StepVerifier.create(stash.setRemove("group4", null))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
+                .verify();
+    }
+
+    @Test
+    @DisplayName("Should handle setGetAll with null indexKey")
+    void testSetGetAllWithNullIndexKey() {
+        StepVerifier.create(stash.setGetAll(null))
+                .expectSubscription()
+                .expectErrorMessage("Caching key cannot be null")
                 .verify();
     }
 }
