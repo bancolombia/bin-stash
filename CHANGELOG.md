@@ -1,5 +1,49 @@
 # Changelog
 
+## [v1.4.0](https://github.com/bancolombia/bin-stash/tree/v1.4.0) (2026-01-15)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.0...v1.4.0)
+
+**Closed issues:**
+
+- Add support for Redis SADD, SMEMBERS and SREM operations to enable safe key indexing [\#38](https://github.com/bancolombia/bin-stash/issues/38)
+
+## [v2.1.0](https://github.com/bancolombia/bin-stash/tree/v2.1.0) (2026-01-06)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.0.1...v2.1.0)
+
+**Merged pull requests:**
+
+- feat: Add set operations to ObjectCache and StringStash interfaces [\#40](https://github.com/bancolombia/bin-stash/pull/40) ([MichaelCuellar](https://github.com/MichaelCuellar))
+
+## [v2.0.1](https://github.com/bancolombia/bin-stash/tree/v2.0.1) (2025-12-19)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.0.0...v2.0.1)
+
+**Merged pull requests:**
+
+- fix: update dependencies [\#39](https://github.com/bancolombia/bin-stash/pull/39) ([juancgalvis](https://github.com/juancgalvis))
+
+## [v2.0.0](https://github.com/bancolombia/bin-stash/tree/v2.0.0) (2025-12-09)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.2...v2.0.0)
+
+**Merged pull requests:**
+
+- feat!: update spring boot 4 and jackson 3 dependencies [\#37](https://github.com/bancolombia/bin-stash/pull/37) ([ingjohana](https://github.com/ingjohana))
+
+## [v1.3.2](https://github.com/bancolombia/bin-stash/tree/v1.3.2) (2025-09-10)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.2-beta.1...v1.3.2)
+
+**Merged pull requests:**
+
+- fix: improved key scanning method with recursive cursor processing [\#35](https://github.com/bancolombia/bin-stash/pull/35) ([gabheadz](https://github.com/gabheadz))
+
+## [v1.3.2-beta.1](https://github.com/bancolombia/bin-stash/tree/v1.3.2-beta.1) (2025-09-02)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.1...v1.3.2-beta.1)
+
 ## [v1.3.1](https://github.com/bancolombia/bin-stash/tree/v1.3.1) (2025-07-18)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.3.0...v1.3.1)
