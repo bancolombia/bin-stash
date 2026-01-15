@@ -13,6 +13,7 @@ import java.util.Set;
 
 @Log
 @RequiredArgsConstructor
+@SuppressWarnings("unchecked")
 public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
 
     private final StringStash cache;
@@ -73,6 +74,34 @@ public class SingleTierObjectCacheUseCase<T> implements ObjectCache<T> {
     @Override
     public Mono<Boolean> evictAll() {
         return cache.evictAll();
+    }
+
+    @Override
+    public Mono<T> setSave(String indexKey, String key, T value, int ttl) {
+        if (value == null) {
+            return Mono.error(new InvalidValueException("Value cannot be null"));
+        } else {
+            return Mono.just(value)
+                    .map(this::serialize)
+                    .flatMap(serialized -> cache.setSave(indexKey, key, serialized, ttl))
+                    .map(r -> value);
+        }
+    }
+
+    @Override
+    public Mono<T> setSave(String indexKey, String key, T value) {
+        return this.setSave(indexKey, key, value, -1);
+    }
+
+    @Override
+    public Flux<T> setGetAll(String indexKey, Class<T> clazz) {
+        return cache.setGetAll(indexKey)
+                .map(value -> this.deserialize(value, clazz));
+    }
+
+    @Override
+    public Mono<Boolean> setRemove(String indexKey, String key) {
+        return cache.setRemove(indexKey, key);
     }
 
     private String serialize(T obj) {
