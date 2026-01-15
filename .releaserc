@@ -1,6 +1,6 @@
 {
   "branches": [
-    "^v([0-9]+)$",
+    "v1",
     "master",
     {
       "name": "beta",
