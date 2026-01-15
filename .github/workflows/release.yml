@@ -34,12 +34,21 @@ jobs:
           stripGeneratorNotice: true
 
 
+      - name: Determine branch name
+        id: determine_branch
+        run: |
+          if [[ "${{ github.event.release.tag_name }}" =~ ^v1\. ]]; then
+            echo "branch=v1" >> $GITHUB_OUTPUT
+          else
+            echo "branch=master" >> $GITHUB_OUTPUT
+          fi
+
       - name: Save version
         if: github.event.release.prerelease == false
         uses: github-actions-x/commit@v2.9
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
-          push-branch: "master"
+          push-branch: ${{ steps.determine_branch.outputs.branch }}
           commit-message: 'docs(version): Update version to ${{ env.RELEASE_VERSION }} [skip ci]'
           force-add: "true"
           force-push: "true"
