@@ -1,4 +1,4 @@
-# Bin-Stash 
+# Bin-Stash
 
 ![Maven Central Version](https://img.shields.io/maven-central/v/com.github.bancolombia/bin-stash-local)
 ![](https://github.com/bancolombia/bin-stash/workflows/Java%20CI%20with%20Gradle/badge.svg)
@@ -13,9 +13,16 @@ Library for caching data:
 - In memory (using Caffeine) or with a centralized cache (Redis using Lettuce Reactive) making a single tier cache.
 - Or using both as a two tier stage cache.
 
+# How to use
+
+| Version | Spring Boot | Jackson | Java |
+|---------|-------------|---------|------|
+| 2.x.x   | 4.x.x       | 3.x     | 17+  |
+| 1.x.x   | 3.x.x       | 2.x     | 17+  |
+
 # Getting Started
 
-1.	Installation process
+1. Installation process
 
 For local cache only
 
@@ -41,7 +48,7 @@ dependencies {
 }
 ```
 
-2.	Supported Configuration
+2. Supported Configuration
 
 ```yaml
 stash:
@@ -61,23 +68,22 @@ stash:
     expireTime: 3600 # 1 hour
 ```
 
-| Configuration            | Description                                                                                                                                                                                                                                  |
---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| stash.memory.maxSize     | maximum allowed bytes to store in memory cache                                                                                                                                                                                               |
-| stash.memory.expireTime | set maximum time to hold keys in cache (in seconds).<br/> If not defined, a value of 300 seconds is used as default.<br/>Note that `save()` methods that receive a TTL argument, will ignore such value if its greater than `expireTime`.   |
-| stash.redis.host         | host to connect to (when connecting to a master-replica cluster this is the master host)                                                                                                                                                     |
-| stash.redis.replicas     | host names of replicas, comma separated. (when connecting to a master-replica cluster)                                                                                                                                                       |
-| stash.redis.port         | redis port (when connecting to master-replicas will use same port for all hosts)                                                                                                                                                             |
-| stash.redis.database     | database number to use on single node (0 default)                                                                                                                                                                                            |
-| stash.redis.username     | username (when using RBAC)                                                                                                                                                                                                                   |
-| stash.redis.password     | password when using AUTH or RBAC                                                                                                                                                                                                             |
-| stash.redis.useSsl       | true or false. Indicates the client to connect to redis via secure connection                                                                                                                                                                |
+| Configuration           | Description                                                                                                                                                                                                                               |
+-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| stash.memory.maxSize    | maximum allowed bytes to store in memory cache                                                                                                                                                                                            |
+| stash.memory.expireTime | set maximum time to hold keys in cache (in seconds).<br/> If not defined, a value of 300 seconds is used as default.<br/>Note that `save()` methods that receive a TTL argument, will ignore such value if its greater than `expireTime`. |
+| stash.redis.host        | host to connect to (when connecting to a master-replica cluster this is the master host)                                                                                                                                                  |
+| stash.redis.replicas    | host names of replicas, comma separated. (when connecting to a master-replica cluster)                                                                                                                                                    |
+| stash.redis.port        | redis port (when connecting to master-replicas will use same port for all hosts)                                                                                                                                                          |
+| stash.redis.database    | database number to use on single node (0 default)                                                                                                                                                                                         |
+| stash.redis.username    | username (when using RBAC)                                                                                                                                                                                                                |
+| stash.redis.password    | password when using AUTH or RBAC                                                                                                                                                                                                          |
+| stash.redis.useSsl      | true or false. Indicates the client to connect to redis via secure connection                                                                                                                                                             |
 | stash.redis.expireTime  | default TTL time (in seconds) to hold every key stored in redis. If this parameter is not defined a default value of 300 seconds is used. This value can be overriden for an specific key, with the TTL argument in the `save()` methods. |
-
 
 3. Usage
 
-    3.1. For Local Cache
+   3.1. For Local Cache
 
     ```java
     @Configuration
@@ -134,10 +140,11 @@ stash:
         }
     }
     ```
-   
+
 You can now use `ObjectCache<>` in your app:
 
 ```java
+
 @Component
 public class PersonCachedHandler {
 
@@ -158,8 +165,8 @@ public class PersonCachedHandler {
 
         // Usage with reactor-extra CacheMono
         Mono<Person> cached = CacheMono
-            .lookup(k -> cache.get(k, Person.class) // Get from cache
-                     .map(Signal::next), key)
+                .lookup(k -> cache.get(k, Person.class) // Get from cache
+                        .map(Signal::next), key)
                 .onCacheMissResume(dummyRepo.findByName(key)) // Get from some db repo
                 .andWriteWith((k, sig) ->
                         cache.save(k, sig.get()).then() // Save to cache
@@ -167,21 +174,24 @@ public class PersonCachedHandler {
 
         return cached
                 .flatMap(person -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue(person))
-        );
+                        .body(BodyInserters.fromValue(person))
+                );
     }
 }
 ```
-3.	Latest releases
-4.	API references
+
+3. Latest releases
+4. API references
 
 ## Working with Set Operations
 
-Bin-Stash provides specialized operations for managing collections of key-value pairs grouped by an index key. This feature is useful when you need to organize related data under a common identifier.
+Bin-Stash provides specialized operations for managing collections of key-value pairs grouped by an index key. This
+feature is useful when you need to organize related data under a common identifier.
 
 ### Set Operations Overview
 
 The set operations allow you to:
+
 - Group multiple key-value pairs under a single index key
 - Store each individual item with its own TTL
 - Retrieve all values associated with an index key
@@ -190,9 +200,11 @@ The set operations allow you to:
 ### Available Methods
 
 #### `setSave(String indexKey, String key, String value, int ttl)`
+
 Saves a key-value pair in a set identified by `indexKey`, with a specified time-to-live.
 
 **Parameters:**
+
 - `indexKey`: The identifier of the set collection
 - `key`: The key to be stored in the set
 - `value`: The value to be stored under the key
@@ -201,9 +213,11 @@ Saves a key-value pair in a set identified by `indexKey`, with a specified time-
 **Returns:** `Mono<String>` - The value stored
 
 #### `setSave(String indexKey, String key, String value)`
+
 Saves a key-value pair in a set identified by `indexKey`, using the default TTL configuration.
 
 **Parameters:**
+
 - `indexKey`: The identifier of the set collection
 - `key`: The key to be stored in the set
 - `value`: The value to be stored under the key
@@ -211,19 +225,26 @@ Saves a key-value pair in a set identified by `indexKey`, using the default TTL 
 **Returns:** `Mono<String>` - The value stored
 
 #### `setGetAll(String indexKey)`
+
 Retrieves all values from the set identified by `indexKey`. Automatically filters out expired keys.
 
-> ⚠️ **Performance Warning**: This method has O(N) time complexity, where N is the number of members in the set. It iterates through every member and fetches its value, resulting in multiple round-trips to Redis (`SMEMBERS`, then `GET` or `GET` + `SREM` for each key). For large sets, this can cause high latency and increased load on Redis due to many sequential calls.
+> ⚠️ **Performance Warning**: This method has O(N) time complexity, where N is the number of members in the set. It
+> iterates through every member and fetches its value, resulting in multiple round-trips to Redis (`SMEMBERS`, then `GET`
+> or `GET` + `SREM` for each key). For large sets, this can cause high latency and increased load on Redis due to many
+> sequential calls.
 
 **Parameters:**
+
 - `indexKey`: The identifier of the set collection
 
 **Returns:** `Flux<String>` - All values stored in the set if it exists, Empty Flux otherwise
 
 #### `setRemove(String indexKey, String key)`
+
 Removes a specific key-value pair from the set identified by `indexKey`.
 
 **Parameters:**
+
 - `indexKey`: The identifier of the set collection
 - `key`: The key to be removed from the set
 
@@ -232,11 +253,12 @@ Removes a specific key-value pair from the set identified by `indexKey`.
 ### Usage Example
 
 ```java
+
 @Component
 public class UserSessionHandler {
 
     private final ObjectCache<SessionData> cache;
-    
+
     @Autowired
     public UserSessionHandler(ObjectCache<SessionData> cache) {
         this.cache = cache;
@@ -269,6 +291,7 @@ public class UserSessionHandler {
 ### Use Cases
 
 Set operations are ideal for:
+
 - **User Sessions**: Group all active sessions for a user under their user ID
 - **Shopping Carts**: Store multiple cart items under a cart ID
 - **Notification Queues**: Manage pending notifications for a user
@@ -278,6 +301,7 @@ Set operations are ideal for:
 ### How it works with Redis
 
 When using centralized (Redis) or hybrid cache:
+
 - The `indexKey` is stored as a Redis SET containing all keys in the collection
 - Each `key` is stored as a regular Redis key with its own value and TTL
 - `setGetAll` automatically cleans up expired keys from the set
@@ -290,9 +314,9 @@ When using the cache in hybrid mode (two tier cache), requests works as describe
 **GET Operation**
 
 1. When a lookup misses local cache, and upstream sync is allowed, bin-stash tries to lookup in the centralized cache.
-2. If the lookup operation in the centralized cache hits a key, then return the value. Also if downtream sync 
+2. If the lookup operation in the centralized cache hits a key, then return the value. Also if downtream sync
    is allowed, the key-value is replicated in local cache.
-   
+
 **SAVE operation**
 
 1. Writes are performed in local cache, and if upstream sync is allowed, bin-stash tries to write key-value in the
@@ -302,25 +326,18 @@ When using the cache in hybrid mode (two tier cache), requests works as describe
 
 1. `Evict(key)` is performed in local cache, and if upstream sync is allowed, bin-stash tries to evict key-value in the
    centralized cache.
-2. `EvictAll` operation it's performed on local and is not syncronized upstream.   
+2. `EvictAll` operation it's performed on local and is not syncronized upstream.
 
 **Sync Rules**
 
-DoubleTierCache uses a collection of `SyncRule` to determine if upstream/downstream sync takes place. 
-This functional interface takes keyname and `SyncType` (UPSTREAM or DOWNSTREAM) as arguments, and should return 
+DoubleTierCache uses a collection of `SyncRule` to determine if upstream/downstream sync takes place.
+This functional interface takes keyname and `SyncType` (UPSTREAM or DOWNSTREAM) as arguments, and should return
 a `boolean`.
 
-# How to use 
-| Version | Spring Boot | Jackson | Java         |
-|----|-------------|---------|--------------|
-| 2.0.0   | 4.0.0       | 3.x     | 17+          |
-| 1.3.2 | 3.x.x       | 2.x     | 17+ |
-
-
-
-
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+
+TODO: Describe and show how to build your code and run the tests.
 
 # Contribute
+
 TODO: Explain how other users and developers can contribute to make your code better. 
