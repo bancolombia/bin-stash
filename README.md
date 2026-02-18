@@ -17,8 +17,8 @@ Library for caching data:
 
 | Version | Spring Boot | Jackson | Java |
 |---------|-------------|---------|------|
-| 2.0.0   | 4.0.0       | 3.x     | 17+  |
-| 1.3.2   | 3.x.x       | 2.x     | 17+  |
+| 2.x.x   | 4.x.x       | 3.x     | 17+  |
+| 1.x.x   | 3.x.x       | 2.x     | 17+  |
 
 # Getting Started
 
