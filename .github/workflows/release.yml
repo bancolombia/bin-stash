@@ -12,7 +12,7 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID_ADMIN_GITHUB }}
           private-key: ${{ secrets.APP_PRIVATE_KEY_ADMIN_GITHUB }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.generate_token.outputs.token }}
       - name: Set env
@@ -24,7 +24,7 @@ jobs:
 
       - name: Generate Changelog
         if: github.event.release.prerelease == false
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        uses: heinrichreimer/github-changelog-generator-action@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pullRequests: true
@@ -48,7 +48,7 @@ jobs:
           email: release-bot@bancolombia.com.co
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: 25
