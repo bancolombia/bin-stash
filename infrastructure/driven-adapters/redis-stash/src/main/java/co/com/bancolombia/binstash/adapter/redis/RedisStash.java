@@ -7,6 +7,7 @@ import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
+import lombok.extern.java.Log;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Log
 public class RedisStash implements Stash {
 
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
@@ -223,8 +225,12 @@ public class RedisStash implements Stash {
         } else {
             return redisReactiveCommands.smembers(indexKey)
                     .flatMap(key -> redisReactiveCommands.get(key)
-                            .switchIfEmpty(redisReactiveCommands.srem(indexKey, key)
-                                    .then(Mono.empty())));
+                            .doOnNext(val -> log.info("Encontrado: " + key + " con valor: " + val))
+                            .switchIfEmpty(Mono.defer(() -> {
+                                log.info("No encontrado, borrando: " + key);
+                                return redisReactiveCommands.srem(indexKey, key).then(Mono.empty());
+                            }))
+                    );
         }
     }
 
