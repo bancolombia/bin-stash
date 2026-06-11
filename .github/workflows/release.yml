@@ -21,10 +21,8 @@ jobs:
       - name: Upgrade Gradle.properties
         run: sed -i 's/version=.*/version=${{ env.RELEASE_VERSION }}/g' gradle.properties
 
-
       - name: Generate Changelog
-        if: github.event.release.prerelease == false
-        uses: heinrichreimer/github-changelog-generator-action@v2
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pullRequests: true
@@ -32,7 +30,6 @@ jobs:
           issues: true
           issuesWoLabels: true
           stripGeneratorNotice: true
-
 
       - name: Save version
         if: github.event.release.prerelease == false
