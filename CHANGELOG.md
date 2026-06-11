@@ -1,5 +1,36 @@
 # Changelog
 
+## [v2.1.2](https://github.com/bancolombia/bin-stash/tree/v2.1.2) (2026-06-11)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.4.1-beta.1...v2.1.2)
+
+**Merged pull requests:**
+
+- build: update github actions [\#46](https://github.com/bancolombia/bin-stash/pull/46) ([juancgalvis](https://github.com/juancgalvis))
+- fix: update dependencies [\#45](https://github.com/bancolombia/bin-stash/pull/45) ([juancgalvis](https://github.com/juancgalvis))
+
+## [v1.4.1-beta.1](https://github.com/bancolombia/bin-stash/tree/v1.4.1-beta.1) (2026-04-06)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.1...v1.4.1-beta.1)
+
+## [v2.1.1](https://github.com/bancolombia/bin-stash/tree/v2.1.1) (2026-03-19)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.4.0...v2.1.1)
+
+**Merged pull requests:**
+
+- ci: update GitHub app token action [\#44](https://github.com/bancolombia/bin-stash/pull/44) ([luisgomez29](https://github.com/luisgomez29))
+- chore: update GitHub app token action and clean up documentation [\#43](https://github.com/bancolombia/bin-stash/pull/43) ([luisgomez29](https://github.com/luisgomez29))
+- fix\(deps\): update dependencies [\#41](https://github.com/bancolombia/bin-stash/pull/41) ([app-toolkit-opensource-innersource[bot]](https://github.com/apps/app-toolkit-opensource-innersource))
+
+## [v1.4.0](https://github.com/bancolombia/bin-stash/tree/v1.4.0) (2026-01-15)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.0...v1.4.0)
+
+**Closed issues:**
+
+- Add support for Redis SADD, SMEMBERS and SREM operations to enable safe key indexing [\#38](https://github.com/bancolombia/bin-stash/issues/38)
+
 ## [v2.1.0](https://github.com/bancolombia/bin-stash/tree/v2.1.0) (2026-01-06)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.0.1...v2.1.0)
