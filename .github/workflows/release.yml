@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID_ADMIN_GITHUB }}
           private-key: ${{ secrets.APP_PRIVATE_KEY_ADMIN_GITHUB }}
@@ -22,7 +22,7 @@ jobs:
         run: sed -i 's/version=.*/version=${{ env.RELEASE_VERSION }}/g' gradle.properties
 
       - name: Generate Changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        uses: heinrichreimer/github-changelog-generator-action@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pullRequests: true
@@ -33,7 +33,7 @@ jobs:
 
       - name: Save version
         if: github.event.release.prerelease == false
-        uses: github-actions-x/commit@v2.9
+        uses: github-actions-x/commit@v2
         with:
           github-token: ${{ steps.generate_token.outputs.token }}
           push-branch: "master"
