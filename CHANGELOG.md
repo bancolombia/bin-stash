@@ -1,5 +1,27 @@
 # Changelog
 
+## [v2.1.3](https://github.com/bancolombia/bin-stash/tree/v2.1.3) (2026-08-21)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.2...v2.1.3)
+
+**Merged pull requests:**
+
+- ci\(release\): update github-changelog-generator-action to v2.4 [\#61](https://github.com/bancolombia/bin-stash/pull/61) ([luisgomez29](https://github.com/luisgomez29))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.6 to 4.37.7 [\#60](https://github.com/bancolombia/bin-stash/pull/60) ([dependabot[bot]](https://github.com/apps/dependabot))
+- fix\(deps\): update dependencies [\#59](https://github.com/bancolombia/bin-stash/pull/59) ([app-toolkit-opensource-innersource[bot]](https://github.com/apps/app-toolkit-opensource-innersource))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.3 to 4.37.6 [\#58](https://github.com/bancolombia/bin-stash/pull/58) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.1 to 4.37.3 [\#57](https://github.com/bancolombia/bin-stash/pull/57) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump ossf/scorecard-action from 2.4.3 to 2.4.4 [\#56](https://github.com/bancolombia/bin-stash/pull/56) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump actions/setup-node from 6 to 7 [\#55](https://github.com/bancolombia/bin-stash/pull/55) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.0 to 4.37.1 [\#54](https://github.com/bancolombia/bin-stash/pull/54) ([dependabot[bot]](https://github.com/apps/dependabot))
+- ci: add Gradle wrapper update step to updater workflow [\#53](https://github.com/bancolombia/bin-stash/pull/53) ([luisgomez29](https://github.com/luisgomez29))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.36.3 to 4.37.0 [\#52](https://github.com/bancolombia/bin-stash/pull/52) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.36.2 to 4.36.3 [\#51](https://github.com/bancolombia/bin-stash/pull/51) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): update dependencies [\#50](https://github.com/bancolombia/bin-stash/pull/50) ([app-toolkit-opensource-innersource[bot]](https://github.com/apps/app-toolkit-opensource-innersource))
+- build\(deps\): bump actions/checkout from 6 to 7 [\#49](https://github.com/bancolombia/bin-stash/pull/49) ([dependabot[bot]](https://github.com/apps/dependabot))
+- ci: update GitHub Actions to use newer action versions [\#48](https://github.com/bancolombia/bin-stash/pull/48) ([luisgomez29](https://github.com/luisgomez29))
+- ci: update GitHub Actions to use latest versions of actions [\#47](https://github.com/bancolombia/bin-stash/pull/47) ([luisgomez29](https://github.com/luisgomez29))
+
 ## [v2.1.2](https://github.com/bancolombia/bin-stash/tree/v2.1.2) (2026-06-11)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v1.4.1-beta.1...v2.1.2)
