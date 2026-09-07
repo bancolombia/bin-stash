@@ -1,5 +1,20 @@
 # Changelog
 
+## [v2.1.4](https://github.com/bancolombia/bin-stash/tree/v2.1.4) (2026-09-07)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.3...v2.1.4)
+
+**Fixed bugs:**
+
+- \[Bug\] RedisProperties overwrites RBAC username and fails to parse replica ports, causing WRONGPASS and UnknownHostException [\#65](https://github.com/bancolombia/bin-stash/issues/65)
+
+**Merged pull requests:**
+
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.8 to 4.37.9 [\#66](https://github.com/bancolombia/bin-stash/pull/66) ([dependabot[bot]](https://github.com/apps/dependabot))
+- fix\(deps\): update dependencies fix redis properties issues [\#64](https://github.com/bancolombia/bin-stash/pull/64) ([app-toolkit-opensource-innersource[bot]](https://github.com/apps/app-toolkit-opensource-innersource))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.7 to 4.37.8 [\#63](https://github.com/bancolombia/bin-stash/pull/63) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump actions/setup-java from 5 to 6 [\#62](https://github.com/bancolombia/bin-stash/pull/62) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v2.1.3](https://github.com/bancolombia/bin-stash/tree/v2.1.3) (2026-08-21)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.2...v2.1.3)
