@@ -27,9 +27,9 @@ public class RedisProperties {
         return this.hostReplicas != null && !this.hostReplicas.isEmpty();
     }
 
+    // Leaved for compatibility because is public method
     public boolean isRbac() {
-        return (this.username != null && !this.username.isBlank()) &&
-                (this.password != null && !this.password.isBlank());
+        return hasValue(this.username) && hasValue(this.password);
     }
 
     public RedisURI getPrimaryURI() {
@@ -51,16 +51,25 @@ public class RedisProperties {
     }
 
     private RedisURI getURI(String host) {
-        var builder = RedisURI.builder()
-                .withHost(host)
-                .withPort(this.port);
+        String finalHost = host;
+        int finalPort = this.port;
 
-        if (isRbac()) {
-            builder = builder.withAuthentication(this.username, this.password.toCharArray());
+        if (host.contains(":")) {
+            String[] parts = host.split(":");
+            finalHost = parts[0];
+            finalPort = Integer.parseInt(parts[1]);
         }
 
-        if (this.password != null && !this.password.isBlank()){
-            builder = builder.withPassword(this.password.toCharArray());
+        var builder = RedisURI.builder()
+                .withHost(finalHost)
+                .withPort(finalPort);
+
+        if (hasValue(this.password)) {
+            if (hasValue(this.username)) {
+                builder = builder.withAuthentication(this.username, this.password.toCharArray());
+            } else {
+                builder = builder.withPassword(this.password.toCharArray());
+            }
         }
 
         if (this.database > 0) {
@@ -68,5 +77,9 @@ public class RedisProperties {
         }
         builder = builder.withSsl(this.useSsl);
         return builder.build();
+    }
+
+    private static boolean hasValue(String value) {
+        return value != null && !value.isBlank();
     }
 }
