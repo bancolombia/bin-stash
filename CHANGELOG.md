@@ -1,5 +1,15 @@
 # Changelog
 
+## [v2.1.5](https://github.com/bancolombia/bin-stash/tree/v2.1.5) (2026-10-23)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.4...v2.1.5)
+
+**Merged pull requests:**
+
+- fix\(deps\): update dependencies [\#75](https://github.com/bancolombia/bin-stash/pull/75) ([luisgomez29](https://github.com/luisgomez29))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.38.0 to 4.38.1 [\#69](https://github.com/bancolombia/bin-stash/pull/69) ([dependabot[bot]](https://github.com/apps/dependabot))
+- build\(deps\): bump github/codeql-action/upload-sarif from 4.37.9 to 4.38.0 [\#68](https://github.com/bancolombia/bin-stash/pull/68) ([dependabot[bot]](https://github.com/apps/dependabot))
+
 ## [v2.1.4](https://github.com/bancolombia/bin-stash/tree/v2.1.4) (2026-09-07)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.3...v2.1.4)
