@@ -1,5 +1,11 @@
 rootProject.name = 'bin-stash'
 
+buildCache {
+    local {
+        directory = new File(rootDir, 'build-cache')
+    }
+}
+
 include ":bin-stash-model"
 project(':bin-stash-model').projectDir = file('./domain/model')
 
