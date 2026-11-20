@@ -74,7 +74,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.2'
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:4.2.0'
         }
     }
 
@@ -192,5 +192,5 @@ tasks.register('generateMergedReport', JacocoReport) {
 }
 
 tasks.named('wrapper') {
-    gradleVersion = '9.8.2'
+    gradleVersion = '9.9.2'
 }
