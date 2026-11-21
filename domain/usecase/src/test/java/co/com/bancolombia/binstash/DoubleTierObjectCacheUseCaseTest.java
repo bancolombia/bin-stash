@@ -3,6 +3,8 @@ package co.com.bancolombia.binstash;
 import co.com.bancolombia.binstash.demo.Address;
 import co.com.bancolombia.binstash.demo.Person;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
+import co.com.bancolombia.binstash.model.api.StringStash;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.core.type.TypeReference;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -496,5 +498,27 @@ class DoubleTierObjectCacheUseCaseTest {
 
         verify(memStash).setRemove("user:index", "pparker");
         verify(redisStash, timeout(1000)).setRemove("user:index", "pparker");
+    }
+
+    @Test
+    @DisplayName("Unreadable local value falls back to centralized cache")
+    void testUnreadableLocalValueFallsBackToCentralized() {
+        StringStash localStash = mock(StringStash.class);
+        when(localStash.get("pparker")).thenReturn(Mono.just("not-json"));
+        ObjectCache<Person> localCache =
+                new SingleTierObjectCacheUseCase<>(localStash, new SerializatorHelper<>(new ObjectMapper()));
+        DoubleTierObjectCacheUseCase<Person> hybrid =
+                new DoubleTierObjectCacheUseCase<>(localCache, redisStash, ruleEvaluatorUseCase);
+
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(false);
+        when(redisStash.get(eq("pparker"), any())).thenReturn(Mono.just(p));
+
+        StepVerifier.create(hybrid.get("pparker", Person.class))
+                .expectSubscription()
+                .expectNext(p)
+                .verifyComplete();
+
+        verify(redisStash).get(eq("pparker"), any());
     }
 }

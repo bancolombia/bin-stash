@@ -25,6 +25,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -437,6 +438,90 @@ class SingleTierObjectCacheUseCaseTest {
                 .verify();
 
         verify(mockedStash).setRemove("user:index", "unknown");
+    }
+
+    @Test
+    @DisplayName("Unreadable cached value is treated as a cache miss")
+    void testGetUnreadableValueIsMiss() {
+        when(mockedStash.get(anyString())).thenReturn(Mono.just("{\"address\":\"SECRET-TOKEN\"}"));
+
+        StepVerifier.create(cache.get("pparker", Person.class))
+                .expectSubscription()
+                .verifyComplete();
+
+        // the stash may be shared with readers that can deserialize the value
+        verify(mockedStash, never()).evict(anyString());
+    }
+
+    @Test
+    @DisplayName("Unreadable cached value is treated as a cache miss (TypeReference)")
+    void testGetWithRefUnreadableValueIsMiss() {
+        when(mockedStash.get(anyString())).thenReturn(Mono.just("not-json"));
+
+        StepVerifier.create(cache.get("pparker", new TypeReference<Person>() {}))
+                .expectSubscription()
+                .verifyComplete();
+
+        verify(mockedStash, never()).evict(anyString());
+    }
+
+    @Test
+    @DisplayName("Set get all skips unreadable members")
+    void testSetGetAllSkipsUnreadableMembers() {
+        when(mockedStash.setGetAll(anyString())).thenReturn(Flux.just(serializedPerson, "not-json"));
+
+        StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                .expectSubscription()
+                .expectNext(p)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("Save fails with InvalidValueException when value cannot be serialized")
+    void testSaveUnserializableValue() {
+        StepVerifier.create(cache.save("pparker", unserializablePerson(), 60))
+                .expectSubscription()
+                .expectError(InvalidValueException.class)
+                .verify();
+
+        verify(mockedStash, never()).save(anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Set save fails with InvalidValueException when value cannot be serialized")
+    void testSetSaveUnserializableValue() {
+        StepVerifier.create(cache.setSave("user:index", "pparker", unserializablePerson()))
+                .expectSubscription()
+                .expectError(InvalidValueException.class)
+                .verify();
+
+        verify(mockedStash, never()).setSave(anyString(), anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Null target type fails with InvalidValueException without reading the stash")
+    void testNullTargetTypeFails() {
+        StepVerifier.create(cache.get("pparker", (Class<Person>) null))
+                .expectError(InvalidValueException.class)
+                .verify();
+        StepVerifier.create(cache.get("pparker", (Object) null))
+                .expectError(InvalidValueException.class)
+                .verify();
+        StepVerifier.create(cache.setGetAll("user:index", null))
+                .expectError(InvalidValueException.class)
+                .verify();
+
+        verify(mockedStash, never()).get(anyString());
+        verify(mockedStash, never()).setGetAll(anyString());
+    }
+
+    private static Person unserializablePerson() {
+        return new Person() {
+            @Override
+            public String getName() {
+                throw new IllegalStateException("boom");
+            }
+        };
     }
 
 }
