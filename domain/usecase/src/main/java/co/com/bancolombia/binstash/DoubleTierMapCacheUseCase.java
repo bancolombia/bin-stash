@@ -1,6 +1,7 @@
 package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.model.api.MapCache;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -9,20 +10,13 @@ import reactor.core.scheduler.Schedulers;
 import java.util.Map;
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class DoubleTierMapCacheUseCase implements MapCache {
 
     private static final Scheduler elastic_scheduler = Schedulers.boundedElastic();
     private final MapCache localCache;
     private final MapCache centralizedCache;
     private final RuleEvaluatorUseCase ruleEvaluatorUseCase;
-
-    public DoubleTierMapCacheUseCase(MapCache localCache,
-                                     MapCache centralizedCache,
-                                     RuleEvaluatorUseCase ruleEvaluatorUseCase) {
-        this.localCache = localCache;
-        this.centralizedCache = centralizedCache;
-        this.ruleEvaluatorUseCase = ruleEvaluatorUseCase;
-    }
 
     @Override
     public Mono<Map<String, String>> saveMap(String key, Map<String, String> value) {
