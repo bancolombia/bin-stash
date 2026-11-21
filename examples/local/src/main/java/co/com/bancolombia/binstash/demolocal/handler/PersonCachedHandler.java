@@ -3,8 +3,8 @@ package co.com.bancolombia.binstash.demolocal.handler;
 import co.com.bancolombia.binstash.demolocal.model.DummyRepo;
 import co.com.bancolombia.binstash.demolocal.model.Person;
 import co.com.bancolombia.binstash.model.api.ObjectCache;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -18,19 +18,13 @@ import java.util.Optional;
 
 @Log
 @Component
+@RequiredArgsConstructor
 public class PersonCachedHandler {
 
     private static final int EXPIRE_AFTER = 10;
 
     public final DummyRepo dummyRepo;
     public final ObjectCache<Person> objectCache;
-
-    @Autowired
-    public PersonCachedHandler(DummyRepo dummyRepo,
-                               ObjectCache<Person> objectCache) {
-        this.dummyRepo = dummyRepo;
-        this.objectCache = objectCache;
-    }
 
     public Mono<ServerResponse> fetchWithCache(ServerRequest request) {
 

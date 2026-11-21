@@ -2,6 +2,7 @@ package co.com.bancolombia.binstash.adapter.redis;
 
 import io.lettuce.core.RedisURI;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
@@ -112,7 +113,7 @@ class RedisPropertiesTest {
 
         RedisURI uri = props.getPrimaryURI();
 
-        StepVerifier.create(uri.getCredentialsProvider().resolveCredentials())
+        StepVerifier.create(Mono.fromCompletionStage(uri.getCredentialsProviderAsync().resolveCredentialsAsync()))
                 .assertNext(credentials -> {
                     assertNull(credentials.getUsername());
                     assertArrayEquals("secret".toCharArray(), credentials.getPassword());
@@ -128,7 +129,7 @@ class RedisPropertiesTest {
 
         RedisURI uri = props.getPrimaryURI();
 
-        StepVerifier.create(uri.getCredentialsProvider().resolveCredentials())
+        StepVerifier.create(Mono.fromCompletionStage(uri.getCredentialsProviderAsync().resolveCredentialsAsync()))
                 .assertNext(credentials -> {
                     assertEquals("user", credentials.getUsername());
                     assertArrayEquals("secret".toCharArray(), credentials.getPassword());
@@ -143,7 +144,7 @@ class RedisPropertiesTest {
 
         RedisURI uri = props.getPrimaryURI();
 
-        StepVerifier.create(uri.getCredentialsProvider().resolveCredentials())
+        StepVerifier.create(Mono.fromCompletionStage(uri.getCredentialsProviderAsync().resolveCredentialsAsync()))
                 .assertNext(credentials -> assertNull(credentials.getPassword()))
                 .verifyComplete();
     }
@@ -248,7 +249,7 @@ class RedisPropertiesTest {
         List<RedisURI> uris = props.getAllURIs();
 
         for (RedisURI uri : uris) {
-            StepVerifier.create(uri.getCredentialsProvider().resolveCredentials())
+            StepVerifier.create(Mono.fromCompletionStage(uri.getCredentialsProviderAsync().resolveCredentialsAsync()))
                     .assertNext(credentials -> {
                         assertEquals("user", credentials.getUsername());
                         assertArrayEquals("secret".toCharArray(), credentials.getPassword());

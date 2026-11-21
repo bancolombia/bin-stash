@@ -7,6 +7,8 @@ import io.lettuce.core.ScanArgs;
 import io.lettuce.core.ScanCursor;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.reactive.RedisReactiveCommands;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class RedisStash implements Stash {
 
     private static final String ERROR_KEY_MSG = "Caching key cannot be null";
@@ -26,12 +29,6 @@ public class RedisStash implements Stash {
     private final RedisReactiveCommands<String, String> redisReactiveCommands;
 
     private final int expireAfter;
-
-    RedisStash(RedisReactiveCommands<String, String> redisReactiveCommands,
-                       int expireAfter) {
-        this.redisReactiveCommands = redisReactiveCommands;
-        this.expireAfter = expireAfter;
-    }
 
     @Override
     public Mono<String> save(String key, String value, int ttl) {
@@ -123,7 +120,7 @@ public class RedisStash implements Stash {
         if (StringUtils.isBlank(key) || value == null) {
             return Mono.error(new InvalidKeyException(ERROR_KEY_MSG));
         } else {
-            return redisReactiveCommands.hmset(key, value)
+            return redisReactiveCommands.hset(key, value)
                     .zipWith(redisReactiveCommands.expire(key, computeTtl(ttl)))
                     .map(r -> value);
         }

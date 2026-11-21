@@ -1,6 +1,7 @@
 package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.model.api.ObjectCache;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -8,20 +9,13 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
 
     private static final Scheduler elastic_scheduler = Schedulers.boundedElastic();
     private final ObjectCache<T> localCache;
     private final ObjectCache<T> centralizedCache;
     private final RuleEvaluatorUseCase ruleEvaluatorUseCase;
-
-    public DoubleTierObjectCacheUseCase(ObjectCache<T> localCache,
-                                        ObjectCache<T> centralizedCache,
-                                        RuleEvaluatorUseCase ruleEvaluatorUseCase) {
-        this.localCache = localCache;
-        this.centralizedCache = centralizedCache;
-        this.ruleEvaluatorUseCase = ruleEvaluatorUseCase;
-    }
 
     @Override
     public Mono<T> save(String key, T value, int ttl) {

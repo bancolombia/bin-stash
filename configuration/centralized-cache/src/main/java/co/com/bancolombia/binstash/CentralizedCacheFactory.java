@@ -13,8 +13,7 @@ public class CentralizedCacheFactory {
     private final ObjectMapper objectMapper;
 
     public <V> ObjectCache<V> newObjectCache() {
-        return new SingleTierObjectCacheUseCase<>(this.centralizedStash,
-                new SerializatorHelper<>(objectMapper));
+        return new SingleTierObjectCacheUseCase<>(this.centralizedStash, new SerializatorHelper<>(objectMapper));
     }
 
     public MapCache newMapCache() {

@@ -1,7 +1,7 @@
 package co.com.bancolombia.binstash.democentralized.handler;
 
 import co.com.bancolombia.binstash.democentralized.model.DummyRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -12,14 +12,10 @@ import reactor.core.publisher.Mono;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class PersonHandler {
 
     public final DummyRepo dummyRepo;
-
-    @Autowired
-    public PersonHandler(DummyRepo dummyRepo) {
-        this.dummyRepo = dummyRepo;
-    }
 
     public Mono<ServerResponse> fetchNoCache(ServerRequest request) {
         String key = Optional.of(request.pathVariable("name"))

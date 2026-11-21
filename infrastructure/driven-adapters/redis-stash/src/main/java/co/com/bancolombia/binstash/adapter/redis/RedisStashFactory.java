@@ -6,12 +6,11 @@ import io.lettuce.core.api.reactive.RedisReactiveCommands;
 import io.lettuce.core.codec.StringCodec;
 import io.lettuce.core.masterreplica.MasterReplica;
 import io.lettuce.core.masterreplica.StatefulRedisMasterReplicaConnection;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RedisStashFactory {
-
-    private RedisStashFactory() {
-        // private constructor
-    }
 
     public static RedisStash redisStash(RedisProperties properties) {
         if (properties.isMasterReplica()) {
@@ -35,15 +34,19 @@ public class RedisStashFactory {
 
         primaryAndReplicaConnection.setReadFrom(ReadFrom.REPLICA);
 
-        return new RedisStash(primaryAndReplicaConnection.reactive(), properties.getExpireTime());
+        return new RedisStash(
+                primaryAndReplicaConnection.commands(RedisReactiveCommands.factory()),
+                properties.getExpireTime()
+        );
     }
 
     public static RedisStash redisStashSingle(RedisProperties properties) {
 
-        RedisClient redisClient =
-                RedisClient.create(properties.getPrimaryURI());
+        RedisClient redisClient = RedisClient.create(properties.getPrimaryURI());
 
-        RedisReactiveCommands<String, String> redisReactiveCommands = redisClient.connect().reactive();
+        RedisReactiveCommands<String, String> redisReactiveCommands =
+                redisClient.connect()
+                .commands(RedisReactiveCommands.factory());
 
         return new RedisStash(redisReactiveCommands, properties.getExpireTime());
     }

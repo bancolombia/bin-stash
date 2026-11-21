@@ -5,7 +5,9 @@ import co.com.bancolombia.binstash.model.InvalidValueException;
 import co.com.bancolombia.binstash.model.api.Stash;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -18,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemoryStash implements Stash {
 
     private static final int DEFAULT_BASE_EXPIRATION_SECONDS = Integer.MAX_VALUE;
@@ -29,11 +32,6 @@ public class MemoryStash implements Stash {
 
     private final Cache<String, MemoryStash.Entry> caffeineCache;
     private final int expireAfter;
-
-    private MemoryStash(Cache<String, MemoryStash.Entry> caffeineCache, int expireAfter) {
-        this.caffeineCache = caffeineCache;
-        this.expireAfter = expireAfter;
-    }
 
     @Override
     public Mono<String> save(String key, String value) {
