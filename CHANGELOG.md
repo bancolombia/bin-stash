@@ -1,5 +1,14 @@
 # Changelog
 
+## [v2.2.0](https://github.com/bancolombia/bin-stash/tree/v2.2.0) (2026-11-21)
+
+[Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.5...v2.2.0)
+
+**Merged pull requests:**
+
+- ci: Update scorecard-action version to v2.5.0 [\#76](https://github.com/bancolombia/bin-stash/pull/76) ([luisgomez29](https://github.com/luisgomez29))
+- feat\(deps\): upgrade to Spring Boot 4.2.0 and Lettuce 7.9 [\#67](https://github.com/bancolombia/bin-stash/pull/67) ([app-toolkit-opensource-innersource[bot]](https://github.com/apps/app-toolkit-opensource-innersource))
+
 ## [v2.1.5](https://github.com/bancolombia/bin-stash/tree/v2.1.5) (2026-10-23)
 
 [Full Changelog](https://github.com/bancolombia/bin-stash/compare/v2.1.4...v2.1.5)
