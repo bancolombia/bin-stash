@@ -1,6 +1,7 @@
 package co.com.bancolombia.binstash;
 
 
+import co.com.bancolombia.binstash.demo.Address;
 import co.com.bancolombia.binstash.demo.Person;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +13,18 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -76,5 +88,73 @@ class SerializatorHelperTest {
         verify(objectMapper, times(0)).writeValueAsString(any(Person.class));
         verify(objectMapper, times(0)).readValue(anyString(), any(Class.class));
         verify(objectMapper, times(0)).readValue(anyString(), any(TypeReference.class));
+    }
+
+    @Test
+    @DisplayName("Should not log the cached value when deserialization fails")
+    void testDeserializationFailureDoesNotLogCachedValue() {
+        SerializatorHelper<Person> sHelper = new SerializatorHelper<>(new ObjectMapper());
+        String corrupt = "{\"address\":\"SECRET-TOKEN\"}";
+
+        List<LogRecord> records = captureLogs(() -> {
+            assertNull(sHelper.deserializeTo(corrupt, Person.class));
+            assertNull(sHelper.deserializeWith(corrupt, new TypeReference<Person>() {}));
+        });
+
+        assertEquals(2, records.size());
+        for (LogRecord logRecord : records) {
+            assertEquals(Level.WARNING, logRecord.getLevel());
+            assertTrue(logRecord.getMessage().contains(Person.class.getName()));
+            assertTrue(logRecord.getMessage().contains("at line 1, column "));
+            assertFalse(logRecord.getMessage().contains("SECRET-TOKEN"));
+        }
+    }
+
+    @Test
+    @DisplayName("Should not log map keys when deserialization fails")
+    void testDeserializationFailureDoesNotLogMapKeys() {
+        SerializatorHelper<Map<String, Address>> sHelper = new SerializatorHelper<>(new ObjectMapper());
+        String corrupt = "{\"user@mail.com\":\"SECRET-TOKEN\"}";
+
+        List<LogRecord> records = captureLogs(() ->
+                assertNull(sHelper.deserializeWith(corrupt, new TypeReference<Map<String, Address>>() {})));
+
+        assertEquals(1, records.size());
+        String message = records.get(0).getMessage();
+        assertTrue(message.contains("at line 1, column "));
+        assertFalse(message.contains("user@mail.com"));
+        assertFalse(message.contains("SECRET-TOKEN"));
+    }
+
+    private static List<LogRecord> captureLogs(Runnable action) {
+        Logger logger = Logger.getLogger(SerializatorHelper.class.getName());
+        List<LogRecord> records = java.util.Collections.synchronizedList(new ArrayList<>());
+        long testThreadId = Thread.currentThread().getId();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord logRecord) {
+                // only this thread's records, so other tests logging concurrently can't interfere
+                if (logRecord.getLongThreadID() == testThreadId) {
+                    records.add(logRecord);
+                }
+            }
+
+            @Override
+            public void flush() {
+                // nothing to flush
+            }
+
+            @Override
+            public void close() {
+                // nothing to close
+            }
+        };
+        logger.addHandler(handler);
+        try {
+            action.run();
+        } finally {
+            logger.removeHandler(handler);
+        }
+        return records;
     }
 }
