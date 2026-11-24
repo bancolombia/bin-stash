@@ -168,14 +168,9 @@ public class DoubleTierObjectCacheUseCase<T> implements ObjectCache<T> {
                 );
     }
 
+    // Not synced downstream: the centralized set only returns values, not member keys, so it can't be rebuilt locally.
     private Flux<T> searchCentralizedSet(String indexKey, Class<T> clazz) {
-        return this.centralizedCache.setGetAll(indexKey, clazz)
-                .doOnNext(next ->
-                        Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(indexKey))
-                                .filter(shouldSyncFromDist -> shouldSyncFromDist)
-                                .flatMap(shouldSync -> this.localCache.setSave(indexKey, indexKey, next))
-                                .subscribe()
-                );
+        return this.centralizedCache.setGetAll(indexKey, clazz);
     }
 
 }

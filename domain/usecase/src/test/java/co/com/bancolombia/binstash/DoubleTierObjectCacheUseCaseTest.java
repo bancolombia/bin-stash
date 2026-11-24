@@ -401,7 +401,6 @@ class DoubleTierObjectCacheUseCaseTest {
     void testSetGetAllFromLocalAndUpstreamNotSyncDownstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(false);
 
         when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
         when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
@@ -419,29 +418,29 @@ class DoubleTierObjectCacheUseCaseTest {
         verify(redisStash).setGetAll(eq("user:index"), any());
     }
 
-    @SneakyThrows
     @Test
-    @DisplayName("Miss local cache on set get all, then fetch from centralized, then sync local cache")
-    void testSetGetAllFromLocalAndUpstreamAndSyncDownstream() {
+    @DisplayName("Set get all from centralized returns every member on repeated calls and is not copied locally")
+    void testSetGetAllFromCentralizedIsNotCopiedDownstream() {
+        Person p2 = new Person();
+        p2.setName("Mary Jane");
+        Person p3 = new Person();
+        p3.setName("Harry Osborn");
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
 
         when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
-        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
-        when(memStash.setSave(anyString(), anyString(), any(Person.class))).thenReturn(Mono.just(p));
+        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p, p2, p3));
 
-        StepVerifier.create(cache.setGetAll("user:index", Person.class))
-                .expectSubscription()
-                .expectNext(p)
-                .expectComplete()
-                .verifyThenAssertThat()
-                .hasNotDiscardedElements()
-                .hasNotDroppedElements();
+        for (int call = 0; call < 2; call++) {
+            StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                    .expectSubscription()
+                    .expectNext(p, p2, p3)
+                    .verifyComplete();
+        }
 
-        verify(memStash).setGetAll(eq("user:index"), any());
-        verify(memStash, timeout(1000)).setSave(eq("user:index"), eq("user:index"), any(Person.class));
-        verify(redisStash).setGetAll(eq("user:index"), any());
+        // the centralized set only returns values, not member keys, so it can't be rebuilt locally
+        verify(memStash, after(200).never()).setSave(anyString(), anyString(), any(Person.class));
+        verify(redisStash, times(2)).setGetAll(eq("user:index"), any());
     }
 
     @Test
