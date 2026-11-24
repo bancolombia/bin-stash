@@ -3,3 +3,6 @@
 .idea
 build
 /build-cache/
+
+# Release tooling (semantic-release)
+node_modules/
