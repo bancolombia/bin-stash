@@ -2,6 +2,7 @@ package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.model.api.MapCache;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -9,7 +10,9 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
+@Log
 @RequiredArgsConstructor
 public class DoubleTierMapCacheUseCase implements MapCache {
 
@@ -26,15 +29,9 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Map<String, String>> saveMap(String key, Map<String, String> value, int ttl) {
         return localCache.saveMap(key, value, ttl)
-                .doAfterTerminate(() ->
-                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
-                                .subscribeOn(elastic_scheduler)
-                                .filter(shouldSync -> shouldSync)
-                                .flatMap(shouldSync -> centralizedCache.existsMap(key))
-                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                                .flatMap(exists -> centralizedCache.saveMap(key, value, ttl))
-                                .subscribe()
-                );
+                .doOnSuccess(saved -> syncUpstream(key, () -> centralizedCache.existsMap(key)
+                        .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                        .flatMap(absent -> centralizedCache.saveMap(key, value, ttl))));
     }
 
     @Override
@@ -45,15 +42,9 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<String> saveMap(String key, String field, String value, int ttl) {
         return localCache.saveMap(key, field, value, ttl)
-                .doAfterTerminate(() ->
-                        Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
-                                .subscribeOn(elastic_scheduler)
-                                .filter(shouldSync -> shouldSync)
-                                .flatMap(shouldSync -> centralizedCache.existsMap(key, field))
-                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                                .flatMap(exists -> centralizedCache.saveMap(key, field, value, ttl))
-                                .subscribe()
-                );
+                .doOnSuccess(saved -> syncUpstream(key, () -> centralizedCache.existsMap(key, field)
+                        .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                        .flatMap(absent -> centralizedCache.saveMap(key, field, value, ttl))));
     }
 
     @Override
@@ -63,12 +54,7 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
                     .flatMap(shouldFetch -> this.centralizedCache.getMap(key, field)
-                        .doOnNext(next ->
-                            Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
-                                .filter(shouldSyncFromDist -> shouldSyncFromDist)
-                                .flatMap(shouldSync -> this.localCache.saveMap(key, field, next))
-                                .subscribe()
-                        ))
+                        .doOnNext(next -> syncDownstream(key, () -> this.localCache.saveMap(key, field, next))))
             ));
     }
 
@@ -79,12 +65,7 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
                     .flatMap(shouldFetch -> this.centralizedCache.getMap(key)
-                        .doOnNext(next ->
-                            Mono.just(ruleEvaluatorUseCase.evalForDownstreamSync(key))
-                                .filter(shouldSyncFromDist -> shouldSyncFromDist)
-                                .flatMap(shouldSync -> this.localCache.saveMap(key, next))
-                                .subscribe()
-                        ))
+                        .doOnNext(next -> syncDownstream(key, () -> this.localCache.saveMap(key, next))))
             ));
     }
 
@@ -110,12 +91,34 @@ public class DoubleTierMapCacheUseCase implements MapCache {
 
     @Override
     public Mono<Boolean> evictMap(String key) {
-        return localCache.evictMap(key);
+        return localCache.evictMap(key)
+                .doOnSuccess(evicted -> syncUpstream(key, () -> centralizedCache.evictMap(key)));
     }
 
     @Override
     public Mono<Boolean> evictMap(String key, String field) {
-        return localCache.evictMap(key, field);
+        return localCache.evictMap(key, field)
+                .doOnSuccess(evicted -> syncUpstream(key, () -> centralizedCache.evictMap(key, field)));
+    }
+
+    // Runs only after the local operation completed without error; the centralized operation runs in the background.
+    private void syncUpstream(String key, Supplier<Mono<?>> centralizedOperation) {
+        Mono.fromCallable(() -> ruleEvaluatorUseCase.evalForUpstreamSync(key))
+                .filter(shouldSync -> shouldSync)
+                .flatMap(shouldSync -> Mono.defer(centralizedOperation).subscribeOn(elastic_scheduler))
+                .subscribe(null, error -> logSyncFailure("upstream", key, error));
+    }
+
+    private void syncDownstream(String key, Supplier<Mono<?>> localOperation) {
+        Mono.fromCallable(() -> ruleEvaluatorUseCase.evalForDownstreamSync(key))
+                .filter(shouldSync -> shouldSync)
+                .flatMap(shouldSync -> Mono.defer(localOperation))
+                .subscribe(null, error -> logSyncFailure("downstream", key, error));
+    }
+
+    // The exception message is not logged: it may contain cached data.
+    private static void logSyncFailure(String direction, String key, Throwable error) {
+        log.warning(() -> String.format("Could not sync key %s %s: %s", key, direction, error.getClass().getName()));
     }
 
 }

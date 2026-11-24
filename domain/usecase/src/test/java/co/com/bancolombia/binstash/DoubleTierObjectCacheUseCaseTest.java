@@ -21,7 +21,9 @@ import reactor.test.StepVerifier;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -519,5 +521,64 @@ class DoubleTierObjectCacheUseCaseTest {
                 .verifyComplete();
 
         verify(redisStash).get(eq("pparker"), any());
+    }
+
+    @Test
+    @DisplayName("Failed local save is not synced upstream")
+    void testFailedLocalSaveIsNotSyncedUpstream() {
+        when(memStash.save(anyString(), any(Person.class), anyInt()))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+        lenient().when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+
+        StepVerifier.create(cache.save("pparker", p, 60))
+                .expectError(IllegalStateException.class)
+                .verify();
+
+        // the sync rule is evaluated synchronously when the sync is triggered, so this check is deterministic
+        verify(ruleEvaluatorUseCase, never()).evalForUpstreamSync(anyString());
+        verify(redisStash, after(200).never()).exists(anyString());
+        verify(redisStash, never()).save(anyString(), any(Person.class), anyInt());
+    }
+
+    @Test
+    @DisplayName("Centralized sync error is logged without its message instead of being dropped")
+    void testCentralizedSyncErrorIsLogged() throws InterruptedException {
+        when(memStash.save(anyString(), any(Person.class))).thenReturn(Mono.just(p));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(redisStash.exists(anyString())).thenReturn(Mono.error(new IllegalStateException("SECRET-DETAIL")));
+
+        try (SyncFailureCapture capture = new SyncFailureCapture(DoubleTierObjectCacheUseCase.class, "upsync-err")) {
+            StepVerifier.create(cache.save("upsync-err", p))
+                    .expectNext(p)
+                    .verifyComplete();
+
+            assertTrue(capture.awaitLogged());
+            String message = capture.messages().get(0);
+            assertTrue(message.contains("upstream"));
+            assertTrue(message.contains(IllegalStateException.class.getName()));
+            assertFalse(message.contains("SECRET-DETAIL"));
+            assertTrue(capture.dropped().isEmpty());
+        }
+    }
+
+    @Test
+    @DisplayName("Downstream sync error is logged instead of being dropped")
+    void testDownstreamSyncErrorIsLogged() throws InterruptedException {
+        when(memStash.get(anyString(), any(Class.class))).thenReturn(Mono.empty());
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
+        when(redisStash.get(anyString(), any(Class.class))).thenReturn(Mono.just(p));
+        when(memStash.save(anyString(), any(Person.class)))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+
+        try (SyncFailureCapture capture = new SyncFailureCapture(DoubleTierObjectCacheUseCase.class, "downsync-err")) {
+            StepVerifier.create(cache.get("downsync-err", Person.class))
+                    .expectNext(p)
+                    .verifyComplete();
+
+            assertTrue(capture.awaitLogged());
+            assertTrue(capture.messages().get(0).contains("downstream"));
+            assertTrue(capture.dropped().isEmpty());
+        }
     }
 }
