@@ -557,8 +557,9 @@ class DoubleTierObjectCacheUseCaseTest {
             assertTrue(message.contains("upstream"));
             assertTrue(message.contains(IllegalStateException.class.getName()));
             assertFalse(message.contains("SECRET-DETAIL"));
-            // the key may contain user data, so it is only logged at FINE
+            // the key may contain user data, so it is only logged at FINE, together with the stack trace
             assertFalse(message.contains("upsync-err"));
+            assertTrue(capture.debugThrown().get(0) instanceof IllegalStateException);
             assertTrue(capture.dropped().isEmpty());
         }
     }

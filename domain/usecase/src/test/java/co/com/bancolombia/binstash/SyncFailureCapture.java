@@ -24,6 +24,7 @@ final class SyncFailureCapture implements AutoCloseable {
     private final CountDownLatch logged = new CountDownLatch(1);
     private final List<String> warnings = new CopyOnWriteArrayList<>();
     private final List<Throwable> dropped = new CopyOnWriteArrayList<>();
+    private final List<Throwable> debugThrown = new CopyOnWriteArrayList<>();
 
     SyncFailureCapture(String key) {
         String keyToken = "key " + key;
@@ -37,7 +38,11 @@ final class SyncFailureCapture implements AutoCloseable {
                     return;
                 }
                 if (logRecord.getLevel() == Level.FINE) {
-                    keyLogged.set(message.endsWith(keyToken));
+                    boolean forThisKey = message.endsWith(keyToken);
+                    keyLogged.set(forThisKey);
+                    if (forThisKey && logRecord.getThrown() != null) {
+                        debugThrown.add(logRecord.getThrown());
+                    }
                 } else if (logRecord.getLevel() == Level.WARNING && Boolean.TRUE.equals(keyLogged.get())) {
                     keyLogged.set(false);
                     warnings.add(message);
@@ -67,6 +72,10 @@ final class SyncFailureCapture implements AutoCloseable {
 
     List<String> warnings() {
         return warnings;
+    }
+
+    List<Throwable> debugThrown() {
+        return debugThrown;
     }
 
     List<Throwable> dropped() {

@@ -8,6 +8,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 /**
  * Background sync between the local and centralized tiers of the hybrid cache.
@@ -43,8 +44,8 @@ final class HybridSync {
     }
 
     private static void logFailure(String direction, String key, Throwable error) {
-        // the key is only logged at FINE, right before the warning, to correlate them when debugging
-        log.fine(() -> String.format("Hybrid cache %s sync failed for key %s", direction, key));
+        // the key and the stack trace are only logged at FINE, right before the warning, to debug the failure
+        log.log(Level.FINE, error, () -> String.format("Hybrid cache %s sync failed for key %s", direction, key));
         log.warning(() -> String.format("Hybrid cache %s sync failed: %s", direction, error.getClass().getName()));
     }
 }
