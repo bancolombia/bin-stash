@@ -316,6 +316,8 @@ When using the cache in hybrid mode (two tier cache), requests works as describe
 1. When a lookup misses local cache, and upstream sync is allowed, bin-stash tries to lookup in the centralized cache.
 2. If the lookup operation in the centralized cache hits a key, then return the value. Also if downtream sync
    is allowed, the key-value is replicated in local cache.
+3. Sets (`setGetAll`) are the exception: the centralized cache returns only the values, not the member keys, so the
+   set is not replicated in local cache and every local miss reads the centralized set.
 
 **SAVE operation**
 

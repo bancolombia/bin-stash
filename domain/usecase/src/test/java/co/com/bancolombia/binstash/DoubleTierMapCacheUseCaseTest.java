@@ -370,15 +370,17 @@ class DoubleTierMapCacheUseCaseTest {
         when(centralizedCache.existsMap(anyString(), anyString()))
                 .thenReturn(Mono.error(new IllegalStateException("SECRET-DETAIL")));
 
-        try (SyncFailureCapture capture = new SyncFailureCapture(DoubleTierMapCacheUseCase.class, "map-upsync-err")) {
+        try (SyncFailureCapture capture = new SyncFailureCapture("map-upsync-err")) {
             StepVerifier.create(cache.saveMap("map-upsync-err", "name", "Peter"))
                     .expectNext("Peter")
                     .verifyComplete();
 
             assertTrue(capture.awaitLogged());
-            String message = capture.messages().get(0);
+            String message = capture.warnings().get(0);
             assertTrue(message.contains(IllegalStateException.class.getName()));
             assertFalse(message.contains("SECRET-DETAIL"));
+            // the key may contain user data, so it is only logged at FINE
+            assertFalse(message.contains("upsync-err"));
             assertTrue(capture.dropped().isEmpty());
         }
     }

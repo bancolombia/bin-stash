@@ -2,21 +2,16 @@ package co.com.bancolombia.binstash;
 
 import co.com.bancolombia.binstash.model.api.MapCache;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-@Log
 @RequiredArgsConstructor
 public class DoubleTierMapCacheUseCase implements MapCache {
 
-    private static final Scheduler elastic_scheduler = Schedulers.boundedElastic();
     private final MapCache localCache;
     private final MapCache centralizedCache;
     private final RuleEvaluatorUseCase ruleEvaluatorUseCase;
@@ -101,24 +96,12 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                 .doOnSuccess(evicted -> syncUpstream(key, () -> centralizedCache.evictMap(key, field)));
     }
 
-    // Runs only after the local operation completed without error; the centralized operation runs in the background.
     private void syncUpstream(String key, Supplier<Mono<?>> centralizedOperation) {
-        Mono.fromCallable(() -> ruleEvaluatorUseCase.evalForUpstreamSync(key))
-                .filter(shouldSync -> shouldSync)
-                .flatMap(shouldSync -> Mono.defer(centralizedOperation).subscribeOn(elastic_scheduler))
-                .subscribe(null, error -> logSyncFailure("upstream", key, error));
+        HybridSync.upstream(ruleEvaluatorUseCase, key, centralizedOperation);
     }
 
     private void syncDownstream(String key, Supplier<Mono<?>> localOperation) {
-        Mono.fromCallable(() -> ruleEvaluatorUseCase.evalForDownstreamSync(key))
-                .filter(shouldSync -> shouldSync)
-                .flatMap(shouldSync -> Mono.defer(localOperation))
-                .subscribe(null, error -> logSyncFailure("downstream", key, error));
-    }
-
-    // The exception message is not logged: it may contain cached data.
-    private static void logSyncFailure(String direction, String key, Throwable error) {
-        log.warning(() -> String.format("Could not sync key %s %s: %s", key, direction, error.getClass().getName()));
+        HybridSync.downstream(ruleEvaluatorUseCase, key, localOperation);
     }
 
 }
