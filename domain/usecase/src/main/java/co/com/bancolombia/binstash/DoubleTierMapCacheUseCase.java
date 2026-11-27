@@ -7,7 +7,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 @RequiredArgsConstructor
 public class DoubleTierMapCacheUseCase implements MapCache {
@@ -24,9 +23,10 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Map<String, String>> saveMap(String key, Map<String, String> value, int ttl) {
         return localCache.saveMap(key, value, ttl)
-                .doOnSuccess(saved -> syncUpstream(key, () -> centralizedCache.existsMap(key)
-                        .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                        .flatMap(absent -> centralizedCache.saveMap(key, value, ttl))));
+                .doOnSuccess(saved -> HybridSync.upstream(ruleEvaluatorUseCase, key,
+                        () -> centralizedCache.existsMap(key)
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(absent -> centralizedCache.saveMap(key, value, ttl))));
     }
 
     @Override
@@ -37,9 +37,10 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<String> saveMap(String key, String field, String value, int ttl) {
         return localCache.saveMap(key, field, value, ttl)
-                .doOnSuccess(saved -> syncUpstream(key, () -> centralizedCache.existsMap(key, field)
-                        .filter(elementExistsInDistCache -> !elementExistsInDistCache)
-                        .flatMap(absent -> centralizedCache.saveMap(key, field, value, ttl))));
+                .doOnSuccess(saved -> HybridSync.upstream(ruleEvaluatorUseCase, key,
+                        () -> centralizedCache.existsMap(key, field)
+                                .filter(elementExistsInDistCache -> !elementExistsInDistCache)
+                                .flatMap(absent -> centralizedCache.saveMap(key, field, value, ttl))));
     }
 
     @Override
@@ -49,7 +50,8 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
                     .flatMap(shouldFetch -> this.centralizedCache.getMap(key, field)
-                        .doOnNext(next -> syncDownstream(key, () -> this.localCache.saveMap(key, field, next))))
+                        .doOnNext(next -> HybridSync.downstream(ruleEvaluatorUseCase, key,
+                                () -> this.localCache.saveMap(key, field, next))))
             ));
     }
 
@@ -60,7 +62,8 @@ public class DoubleTierMapCacheUseCase implements MapCache {
                 Mono.just(ruleEvaluatorUseCase.evalForUpstreamSync(key))
                     .filter(shouldFetchFromDist -> shouldFetchFromDist)
                     .flatMap(shouldFetch -> this.centralizedCache.getMap(key)
-                        .doOnNext(next -> syncDownstream(key, () -> this.localCache.saveMap(key, next))))
+                        .doOnNext(next -> HybridSync.downstream(ruleEvaluatorUseCase, key,
+                                () -> this.localCache.saveMap(key, next))))
             ));
     }
 
@@ -87,21 +90,15 @@ public class DoubleTierMapCacheUseCase implements MapCache {
     @Override
     public Mono<Boolean> evictMap(String key) {
         return localCache.evictMap(key)
-                .doOnSuccess(evicted -> syncUpstream(key, () -> centralizedCache.evictMap(key)));
+                .doOnSuccess(evicted -> HybridSync.upstream(ruleEvaluatorUseCase, key,
+                        () -> centralizedCache.evictMap(key)));
     }
 
     @Override
     public Mono<Boolean> evictMap(String key, String field) {
         return localCache.evictMap(key, field)
-                .doOnSuccess(evicted -> syncUpstream(key, () -> centralizedCache.evictMap(key, field)));
-    }
-
-    private void syncUpstream(String key, Supplier<Mono<?>> centralizedOperation) {
-        HybridSync.upstream(ruleEvaluatorUseCase, key, centralizedOperation);
-    }
-
-    private void syncDownstream(String key, Supplier<Mono<?>> localOperation) {
-        HybridSync.downstream(ruleEvaluatorUseCase, key, localOperation);
+                .doOnSuccess(evicted -> HybridSync.upstream(ruleEvaluatorUseCase, key,
+                        () -> centralizedCache.evictMap(key, field)));
     }
 
 }
