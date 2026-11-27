@@ -489,4 +489,41 @@ class RedisStashTest {
                 .verify();
 
     }
+
+    @Test
+    @DisplayName("Should return live set values and drop expired members")
+    void testSetGetAllKeepsLiveValuesAndDropsExpiredMembers() {
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", "one")
+                        .then(stash.setSave(TEST_INDEX_KEY, "key2", "two"))
+                        .then(stash.setSave(TEST_INDEX_KEY, "key3", "three")))
+                .expectSubscription()
+                .expectNext("three")
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.evict("key2"))
+                .expectSubscription()
+                .expectNext(true)
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setGetAll(TEST_INDEX_KEY).collectList())
+                .expectSubscription()
+                .assertNext(values -> {
+                    Assertions.assertEquals(2, values.size());
+                    Assertions.assertTrue(values.containsAll(List.of("one", "three")));
+                })
+                .expectComplete()
+                .verify();
+
+        StepVerifier.create(stash.setGetAll(TEST_INDEX_KEY).collectList())
+                .expectSubscription()
+                .assertNext(values -> {
+                    Assertions.assertEquals(2, values.size());
+                    Assertions.assertTrue(values.containsAll(List.of("one", "three")));
+                })
+                .expectComplete()
+                .verify();
+    }
+
 }

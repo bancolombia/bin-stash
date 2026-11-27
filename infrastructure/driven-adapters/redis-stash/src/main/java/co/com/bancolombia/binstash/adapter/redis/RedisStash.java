@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class RedisStash implements Stash {
     private static final String INVALID_PATTERN_MSG = "Invalid pattern for keys";
 
     private static final int DEFAULT_PER_KEY_EXPIRATION_SECONDS = 300;
+    static final int SET_GET_ALL_BATCH_SIZE = 500;
 
     private final RedisReactiveCommands<String, String> redisReactiveCommands;
 
@@ -219,10 +221,41 @@ public class RedisStash implements Stash {
             return Flux.error(new InvalidKeyException(ERROR_KEY_MSG));
         } else {
             return redisReactiveCommands.smembers(indexKey)
-                    .flatMap(key -> redisReactiveCommands.get(key)
-                            .switchIfEmpty(redisReactiveCommands.srem(indexKey, key)
-                                    .then(Mono.empty())));
+                    .collectList()
+                    .flatMapMany(keys -> Flux.fromIterable(partition(keys, SET_GET_ALL_BATCH_SIZE))
+                            .concatMap(batch -> fetchSetMembers(indexKey, batch)));
         }
+    }
+
+    private Flux<String> fetchSetMembers(String indexKey, List<String> batch) {
+        if (batch.isEmpty()) {
+            return Flux.empty();
+        }
+        return redisReactiveCommands.mget(batch.toArray(new String[0]))
+                .collectList()
+                .flatMapMany(results -> {
+                    List<String> values = new ArrayList<>();
+                    List<String> expired = new ArrayList<>();
+                    for (KeyValue<String, String> result : results) {
+                        if (result.hasValue()) {
+                            values.add(result.getValue());
+                        } else {
+                            expired.add(result.getKey());
+                        }
+                    }
+                    Mono<Void> cleanup = expired.isEmpty()
+                            ? Mono.empty()
+                            : redisReactiveCommands.srem(indexKey, expired.toArray(new String[0])).then();
+                    return cleanup.thenMany(Flux.fromIterable(values));
+                });
+    }
+
+    static List<List<String>> partition(List<String> keys, int batchSize) {
+        List<List<String>> batches = new ArrayList<>();
+        for (int i = 0; i < keys.size(); i += batchSize) {
+            batches.add(List.copyOf(keys.subList(i, Math.min(i + batchSize, keys.size()))));
+        }
+        return batches;
     }
 
     @Override
