@@ -15,7 +15,9 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -341,5 +343,73 @@ class DoubleTierMapCacheUseCaseTest {
                 .verify();
 
         verify(localCache).evictMap("pparker", "name");
+    }
+
+    @Test
+    @DisplayName("Failed local map save is not synced upstream")
+    void testFailedLocalSaveIsNotSyncedUpstream() {
+        when(localCache.saveMap(anyString(), any(Map.class), anyInt()))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+        lenient().when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+
+        StepVerifier.create(cache.saveMap("pparker", demoMap))
+                .expectError(IllegalStateException.class)
+                .verify();
+
+        // the sync rule is evaluated synchronously when the sync is triggered, so this check is deterministic
+        verify(ruleEvaluatorUseCase, never()).evalForUpstreamSync(anyString());
+        verify(centralizedCache, after(200).never()).existsMap(anyString());
+        verify(centralizedCache, never()).saveMap(anyString(), any(Map.class), anyInt());
+    }
+
+    @Test
+    @DisplayName("Centralized map sync error is logged instead of being dropped")
+    void testCentralizedSyncErrorIsLogged() throws InterruptedException {
+        when(localCache.saveMap(anyString(), anyString(), anyString(), anyInt())).thenReturn(Mono.just("Peter"));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(centralizedCache.existsMap(anyString(), anyString()))
+                .thenReturn(Mono.error(new IllegalStateException("SECRET-DETAIL")));
+
+        try (SyncFailureCapture capture = new SyncFailureCapture("map-upsync-err")) {
+            StepVerifier.create(cache.saveMap("map-upsync-err", "name", "Peter"))
+                    .expectNext("Peter")
+                    .verifyComplete();
+
+            assertTrue(capture.awaitLogged());
+            String message = capture.warnings().get(0);
+            assertTrue(message.contains(IllegalStateException.class.getName()));
+            assertFalse(message.contains("SECRET-DETAIL"));
+            // the key may contain user data, so it is only logged at FINE
+            assertFalse(message.contains("upsync-err"));
+            assertTrue(capture.dropped().isEmpty());
+        }
+    }
+
+    @Test
+    @DisplayName("evict map is synced upstream")
+    void testEvictIsSyncedUpstream() {
+        when(localCache.evictMap(anyString())).thenReturn(Mono.just(true));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(centralizedCache.evictMap(anyString())).thenReturn(Mono.just(true));
+
+        StepVerifier.create(cache.evictMap("pparker"))
+                .expectNext(true)
+                .verifyComplete();
+
+        verify(centralizedCache, timeout(1000)).evictMap("pparker");
+    }
+
+    @Test
+    @DisplayName("evict field in map is synced upstream")
+    void testEvictFieldIsSyncedUpstream() {
+        when(localCache.evictMap(anyString(), anyString())).thenReturn(Mono.just(true));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(centralizedCache.evictMap(anyString(), anyString())).thenReturn(Mono.just(true));
+
+        StepVerifier.create(cache.evictMap("pparker", "name"))
+                .expectNext(true)
+                .verifyComplete();
+
+        verify(centralizedCache, timeout(1000)).evictMap("pparker", "name");
     }
 }

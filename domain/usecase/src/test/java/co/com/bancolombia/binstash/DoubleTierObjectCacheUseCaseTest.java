@@ -21,7 +21,9 @@ import reactor.test.StepVerifier;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -401,7 +403,6 @@ class DoubleTierObjectCacheUseCaseTest {
     void testSetGetAllFromLocalAndUpstreamNotSyncDownstream() {
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(false);
 
         when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
         when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
@@ -419,29 +420,29 @@ class DoubleTierObjectCacheUseCaseTest {
         verify(redisStash).setGetAll(eq("user:index"), any());
     }
 
-    @SneakyThrows
     @Test
-    @DisplayName("Miss local cache on set get all, then fetch from centralized, then sync local cache")
-    void testSetGetAllFromLocalAndUpstreamAndSyncDownstream() {
+    @DisplayName("Set get all from centralized returns every member on repeated calls and is not copied locally")
+    void testSetGetAllFromCentralizedIsNotCopiedDownstream() {
+        Person p2 = new Person();
+        p2.setName("Mary Jane");
+        Person p3 = new Person();
+        p3.setName("Harry Osborn");
 
         when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
-        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
 
         when(memStash.setGetAll(anyString(), any())).thenReturn(Flux.empty());
-        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p));
-        when(memStash.setSave(anyString(), anyString(), any(Person.class))).thenReturn(Mono.just(p));
+        when(redisStash.setGetAll(anyString(), any())).thenReturn(Flux.just(p, p2, p3));
 
-        StepVerifier.create(cache.setGetAll("user:index", Person.class))
-                .expectSubscription()
-                .expectNext(p)
-                .expectComplete()
-                .verifyThenAssertThat()
-                .hasNotDiscardedElements()
-                .hasNotDroppedElements();
+        for (int call = 0; call < 2; call++) {
+            StepVerifier.create(cache.setGetAll("user:index", Person.class))
+                    .expectSubscription()
+                    .expectNext(p, p2, p3)
+                    .verifyComplete();
+        }
 
-        verify(memStash).setGetAll(eq("user:index"), any());
-        verify(memStash, timeout(1000)).setSave(eq("user:index"), eq("user:index"), any(Person.class));
-        verify(redisStash).setGetAll(eq("user:index"), any());
+        // the centralized set only returns values, not member keys, so it can't be rebuilt locally
+        verify(memStash, after(200).never()).setSave(anyString(), anyString(), any(Person.class));
+        verify(redisStash, times(2)).setGetAll(eq("user:index"), any());
     }
 
     @Test
@@ -520,5 +521,111 @@ class DoubleTierObjectCacheUseCaseTest {
                 .verifyComplete();
 
         verify(redisStash).get(eq("pparker"), any());
+    }
+
+    @Test
+    @DisplayName("Failed local save is not synced upstream")
+    void testFailedLocalSaveIsNotSyncedUpstream() {
+        when(memStash.save(anyString(), any(Person.class), anyInt()))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+        lenient().when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+
+        StepVerifier.create(cache.save("pparker", p, 60))
+                .expectError(IllegalStateException.class)
+                .verify();
+
+        // the sync rule is evaluated synchronously when the sync is triggered, so this check is deterministic
+        verify(ruleEvaluatorUseCase, never()).evalForUpstreamSync(anyString());
+        verify(redisStash, after(200).never()).exists(anyString());
+        verify(redisStash, never()).save(anyString(), any(Person.class), anyInt());
+    }
+
+    @Test
+    @DisplayName("Centralized sync error is logged without its message instead of being dropped")
+    void testCentralizedSyncErrorIsLogged() throws InterruptedException {
+        when(memStash.save(anyString(), any(Person.class))).thenReturn(Mono.just(p));
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(redisStash.exists(anyString())).thenReturn(Mono.error(new IllegalStateException("SECRET-DETAIL")));
+
+        try (SyncFailureCapture capture = new SyncFailureCapture("upsync-err")) {
+            StepVerifier.create(cache.save("upsync-err", p))
+                    .expectNext(p)
+                    .verifyComplete();
+
+            assertTrue(capture.awaitLogged());
+            String message = capture.warnings().get(0);
+            assertTrue(message.contains("upstream"));
+            assertTrue(message.contains(IllegalStateException.class.getName()));
+            assertFalse(message.contains("SECRET-DETAIL"));
+            // the key may contain user data, so it is only logged at FINE, together with the stack trace
+            assertFalse(message.contains("upsync-err"));
+            assertTrue(capture.debugThrown().get(0) instanceof IllegalStateException);
+            assertTrue(capture.dropped().isEmpty());
+        }
+    }
+
+    @Test
+    @DisplayName("Downstream sync error is logged instead of being dropped")
+    void testDownstreamSyncErrorIsLogged() throws InterruptedException {
+        when(memStash.get(anyString(), any(Class.class))).thenReturn(Mono.empty());
+        when(ruleEvaluatorUseCase.evalForUpstreamSync(anyString())).thenReturn(true);
+        when(ruleEvaluatorUseCase.evalForDownstreamSync(anyString())).thenReturn(true);
+        when(redisStash.get(anyString(), any(Class.class))).thenReturn(Mono.just(p));
+        when(memStash.save(anyString(), any(Person.class)))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+
+        try (SyncFailureCapture capture = new SyncFailureCapture("downsync-err")) {
+            StepVerifier.create(cache.get("downsync-err", Person.class))
+                    .expectNext(p)
+                    .verifyComplete();
+
+            assertTrue(capture.awaitLogged());
+            String message = capture.warnings().get(0);
+            assertTrue(message.contains("downstream"));
+            assertFalse(message.contains("downsync-err"));
+            assertTrue(capture.dropped().isEmpty());
+        }
+    }
+
+    @Test
+    @DisplayName("Failed local set save is not synced upstream")
+    void testFailedLocalSetSaveIsNotSyncedUpstream() {
+        when(memStash.setSave(anyString(), anyString(), any(Person.class), anyInt()))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+
+        StepVerifier.create(cache.setSave("user:index", "pparker", p, 60))
+                .expectError(IllegalStateException.class)
+                .verify();
+
+        verify(ruleEvaluatorUseCase, never()).evalForUpstreamSync(anyString());
+        verify(redisStash, after(200).never()).exists(anyString());
+        verify(redisStash, never()).setSave(anyString(), anyString(), any(Person.class), anyInt());
+    }
+
+    @Test
+    @DisplayName("Failed local set remove is not synced upstream")
+    void testFailedLocalSetRemoveIsNotSyncedUpstream() {
+        when(memStash.setRemove(anyString(), anyString()))
+                .thenReturn(Mono.error(new IllegalStateException("local failure")));
+
+        StepVerifier.create(cache.setRemove("user:index", "pparker"))
+                .expectError(IllegalStateException.class)
+                .verify();
+
+        verify(ruleEvaluatorUseCase, never()).evalForUpstreamSync(anyString());
+        verify(redisStash, after(200).never()).setRemove(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Failed local evict is not synced upstream")
+    void testFailedLocalEvictIsNotSyncedUpstream() {
+        when(memStash.evict(anyString())).thenReturn(Mono.error(new IllegalStateException("local failure")));
+
+        StepVerifier.create(cache.evict("pparker"))
+                .expectError(IllegalStateException.class)
+                .verify();
+
+        verify(ruleEvaluatorUseCase, never()).evalForUpstreamSync(anyString());
+        verify(redisStash, after(200).never()).evict(anyString());
     }
 }
