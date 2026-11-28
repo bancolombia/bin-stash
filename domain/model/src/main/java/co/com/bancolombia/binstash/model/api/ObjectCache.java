@@ -110,9 +110,8 @@ public interface ObjectCache<T> {
      * This method fetches all members of a set identified by the indexKey and
      * deserializes them to the specified class type.
      *
-     * <p>The Redis adapter reads the member keys with {@code SMEMBERS}, then fetches values with batched
-     * {@code MGET} calls (500 keys per call) and issues a single {@code SREM} per batch for members whose
-     * values have expired.</p>
+     * <p><strong>Performance note:</strong> the cost of this method grows with the number of members in the
+     * set, and all member values are loaded into memory. Avoid using it on very large sets.</p>
      *
      * @param indexKey the key that identifies the set in cache
      * @param clazz the class type of objects stored for deserialization purposes

@@ -1,5 +1,7 @@
 package co.com.bancolombia.binstash.adapter.redis;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -493,9 +495,9 @@ class RedisStashTest {
     @Test
     @DisplayName("Should return live set values and drop expired members")
     void testSetGetAllKeepsLiveValuesAndDropsExpiredMembers() {
-        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", "one")
-                        .then(stash.setSave(TEST_INDEX_KEY, "key2", "two"))
-                        .then(stash.setSave(TEST_INDEX_KEY, "key3", "three")))
+        StepVerifier.create(stash.setSave(TEST_INDEX_KEY, "key1", "one", 60)
+                        .then(stash.setSave(TEST_INDEX_KEY, "key2", "two", 60))
+                        .then(stash.setSave(TEST_INDEX_KEY, "key3", "three", 60)))
                 .expectSubscription()
                 .expectNext("three")
                 .expectComplete()
@@ -515,6 +517,13 @@ class RedisStashTest {
                 })
                 .expectComplete()
                 .verify();
+
+        RedisClient client = RedisClient.create("redis://127.0.0.1:16379");
+        try (StatefulRedisConnection<String, String> connection = client.connect()) {
+            Assertions.assertEquals(Set.of("key1", "key3"), connection.sync().smembers(TEST_INDEX_KEY));
+        } finally {
+            client.shutdown();
+        }
 
         StepVerifier.create(stash.setGetAll(TEST_INDEX_KEY).collectList())
                 .expectSubscription()

@@ -215,6 +215,11 @@ public class RedisStash implements Stash {
         return this.setSave(indexKey, key, value, this.expireAfter);
     }
 
+    /**
+     * Reads the member keys with {@code SMEMBERS}, then fetches their values with {@code MGET} in batches of
+     * {@value #SET_GET_ALL_BATCH_SIZE} keys. Members whose values have expired are removed from the set with
+     * one {@code SREM} per batch.
+     */
     @Override
     public Flux<String> setGetAll(String indexKey) {
         if (StringUtils.isAnyBlank(indexKey)) {
@@ -245,8 +250,11 @@ public class RedisStash implements Stash {
                     }
                     Mono<Void> cleanup = expired.isEmpty()
                             ? Mono.empty()
-                            : redisReactiveCommands.srem(indexKey, expired.toArray(new String[0])).then();
-                    return cleanup.thenMany(Flux.fromIterable(values));
+                            : redisReactiveCommands.srem(indexKey, expired.toArray(new String[0]))
+                                    .then()
+                                    // best-effort: a failed cleanup shouldn't fail the read; the next call retries it
+                                    .onErrorResume(e -> Mono.empty());
+                    return Flux.fromIterable(values).concatWith(cleanup.thenMany(Flux.empty()));
                 });
     }
 
